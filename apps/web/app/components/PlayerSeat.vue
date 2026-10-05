@@ -49,6 +49,9 @@ const caption = computed(() => {
         <span class="stat amber"><GameIcon name="shot" />{{ player.mana }}</span>
         <span class="stat"><GameIcon name="cards" tone="steel" />{{ player.handCount }}</span>
       </div>
+      <div class="drunk" :title="`ซดไปแล้ว ${player.potionsDrunk} ช็อต`">
+        <GameIcon name="drink" tone="paper" size="0.8rem" />{{ player.nonAlcoholic ? 'ซดน้ำ' : 'ซด' }} {{ player.potionsDrunk }}
+      </div>
 
       <div v-if="player.artifacts.length || player.statuses.length" class="badges">
         <span v-for="a in player.artifacts" :key="a.iid" class="badge" :title="room.cards.value[a.defId]?.name">
@@ -145,6 +148,14 @@ const caption = computed(() => {
 }
 .stat.amber {
   color: #e3242b;
+}
+.drunk {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  margin-top: 3px;
+  font: 700 0.62rem/1.4 'Kanit', sans-serif;
+  color: #a08f8b;
 }
 .badges {
   display: flex;

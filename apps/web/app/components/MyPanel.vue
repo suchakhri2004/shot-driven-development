@@ -26,6 +26,7 @@ const yourTurn = computed(() => state.value.activeId === me.value.id && !state.v
         <PlayerAvatar :avatar="me.avatar" :size="44" :dead="!me.alive" />
         <span class="tag">{{ me.name }}</span>
         <div class="text-[11px] text-dim">ซด 1 ครั้ง +{{ state.potionYield }}<template v-if="state.manaBank !== null"> · กอง {{ state.manaBank }}</template></div>
+        <div class="text-[11px] text-dim">ซดไปแล้ว {{ me.potionsDrunk }} ช็อต</div>
         <div v-if="me.artifacts.length || me.statuses.length" class="badges">
           <span v-for="a in me.artifacts" :key="a.iid" class="badge" :title="room.cards.value[a.defId]?.name">
             <GameIcon :name="cardIcon(room.cards.value[a.defId])" :tone="room.cards.value[a.defId] ? cardTone(room.cards.value[a.defId]) : undefined" size="1.1rem" />

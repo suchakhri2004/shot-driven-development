@@ -91,7 +91,7 @@ export function useRoom() {
   function applyGame(payload: GameStatePayload) {
     game.value = payload
     clockOffset.value = payload.serverNow - Date.now()
-    if (payload.fx.length) fx.run(payload.fx, payload.state.me, cards.value)
+    if (payload.fx.length) fx.run(payload.fx, payload.state.me, cards.value, payload.state.players)
   }
 
   function call<T extends object = object>(event: keyof ClientToServerEvents, payload?: unknown): Promise<Ack<T>> {

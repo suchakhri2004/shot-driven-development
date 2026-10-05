@@ -1,4 +1,4 @@
-import type { CardDef, Fx } from '@sdd/engine'
+import type { CardDef, Fx, PublicPlayer } from '@sdd/engine'
 import { cardAccent } from '~/theme/theme'
 import { burstAtPlayer } from './useParticles'
 
@@ -19,8 +19,21 @@ export interface Banner {
   by?: 'hp' | 'ko'
 }
 
+/** "X drank" notice shown to the whole table, so nobody can press drink without actually drinking. */
+export interface DrinkCall {
+  id: number
+  name: string
+  avatar: string
+  shot: number
+  sober: boolean
+}
+
+const DRINK_CALL_MS = 1500
+
 const floaters = ref<Floater[]>([])
 const banners = ref<Banner[]>([])
+const drinkCalls = ref<DrinkCall[]>([])
+let drinkCallsFreeAt = 0
 const flash = ref<{ id: number; color: string } | null>(null)
 const shaking = ref<Record<string, number>>({})
 let nextId = 1
@@ -48,6 +61,19 @@ export function useFx() {
     removeLater(banners, item, ms)
   }
 
+  /** Drink notices play one after another (the opening shot can bring several at once). */
+  function drinkCall(player: PublicPlayer, myId: string) {
+    const item = { id: nextId++, name: player.name, avatar: player.avatar, shot: player.potionsDrunk, sober: player.nonAlcoholic }
+    const delay = Math.max(0, drinkCallsFreeAt - Date.now())
+    drinkCallsFreeAt = Date.now() + delay + DRINK_CALL_MS
+    setTimeout(() => {
+      drinkCalls.value = [...drinkCalls.value, item]
+      removeLater(drinkCalls, item, DRINK_CALL_MS)
+      sound.play('cheers')
+      if (player.id !== myId) sound.buzz([30, 40, 30])
+    }, delay)
+  }
+
   function shake(playerId: string) {
     shaking.value = { ...shaking.value, [playerId]: nextId++ }
   }
@@ -56,7 +82,7 @@ export function useFx() {
     flash.value = { id: nextId++, color }
   }
 
-  function handle(fx: Fx, myId: string, cards: Record<string, CardDef>) {
+  function handle(fx: Fx, myId: string, cards: Record<string, CardDef>, players: PublicPlayer[]) {
     const colorOf = (defId: string) => (cards[defId] ? cardAccent(cards[defId]) : undefined)
     switch (fx.kind) {
       case 'damage':
@@ -82,12 +108,15 @@ export function useFx() {
         if (fx.delta !== 0) floater('mana', fx.target, `${fx.delta > 0 ? '+' : ''}${fx.delta}`)
         if (fx.delta > 0) burstAtPlayer(fx.target, 'mana')
         return
-      case 'drink':
+      case 'drink': {
         floater('drink', fx.target, `+${fx.amount}`)
         burstAtPlayer(fx.target, 'drink')
         sound.play('drink')
         if (fx.target === myId) sound.buzz(25)
+        const drinker = players.find((p) => p.id === fx.target)
+        if (drinker) drinkCall(drinker, myId)
         return
+      }
       case 'play':
         banner({ kind: 'play', playerId: fx.owner, defId: fx.defId })
         for (const target of fx.targets) if (target !== fx.owner) burstAtPlayer(target, 'cast', colorOf(fx.defId))
@@ -126,9 +155,9 @@ export function useFx() {
     }
   }
 
-  function run(list: Fx[], myId: string, cards: Record<string, CardDef>) {
-    for (const fx of list) handle(fx, myId, cards)
+  function run(list: Fx[], myId: string, cards: Record<string, CardDef>, players: PublicPlayer[]) {
+    for (const fx of list) handle(fx, myId, cards, players)
   }
 
-  return { floaters, banners, flash, shaking, run }
+  return { floaters, banners, drinkCalls, flash, shaking, run }
 }

@@ -34,6 +34,21 @@ const defOf = (id?: string) => (id ? room.cards.value[id] : undefined)
       </template>
     </div>
 
+    <!-- someone drank: a notice on every screen so a drink cannot be pressed in secret -->
+    <div
+      v-for="d in fx.drinkCalls.value"
+      :key="d.id"
+      class="pointer-events-none fixed inset-x-0 top-[33%] z-[56] flex justify-center px-4"
+    >
+      <div class="drink-call">
+        <PlayerAvatar :avatar="d.avatar" :size="48" />
+        <div class="flex min-w-0 flex-col items-start gap-1">
+          <span class="stamp red anim-stamp">{{ d.sober ? 'ซดน้ำ!' : 'ซด!' }}</span>
+          <span class="tag">{{ d.name }} · ช็อตที่ {{ d.shot }}</span>
+        </div>
+      </div>
+    </div>
+
     <!-- "your turn": at the top edge so it never covers a card or a sheet -->
     <div
       v-for="b in fx.banners.value.filter((x) => x.kind === 'turn')"
@@ -85,6 +100,18 @@ const defOf = (id?: string) => (id ? room.cards.value[id] : undefined)
 .stamp.big {
   font-size: 2.6rem;
   text-align: center;
+}
+.drink-call {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  max-width: 100%;
+  padding: 0.6rem 1rem 0.6rem 0.7rem;
+  background: #0e0a0b;
+  border: 3px solid #e3242b;
+  border-radius: 14px;
+  box-shadow: 0 5px 0 #050304;
+  animation: cast-fly 1.5s ease forwards;
 }
 .turn-tag {
   padding: 0.25rem 1rem;
