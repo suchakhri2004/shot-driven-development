@@ -1,0 +1,34 @@
+# Public deployment on your own server with a domain and automatic HTTPS (Caddy, free/open source).
+#   cp .env.example .env        # set DOMAIN=game.example.com
+#   docker compose -f docker-compose.prod.yml up -d --build
+#
+# Ports 80 and 443 must be reachable from the internet and DNS must point at this machine.
+name: shot-driven-development
+services:
+  game:
+    build: .
+    environment:
+      CORS_ORIGIN: "https://${DOMAIN:-localhost}"
+      DISCONNECT_GRACE_SEC: ${DISCONNECT_GRACE_SEC:-60}
+    expose:
+      - "3210"
+    restart: unless-stopped
+
+  caddy:
+    image: caddy:2-alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      DOMAIN: ${DOMAIN:-localhost}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - game
+    restart: unless-stopped
+
+volumes:
+  caddy_data:
+  caddy_config:

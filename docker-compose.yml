@@ -1,0 +1,11 @@
+name: shot-driven-development
+# Run the whole game in one container:
+#   docker compose up --build        ->  http://localhost:3210
+#
+# Rooms live in the server's memory (see docs/ARCHITECTURE.md), so no database is needed.
+services:
+  game:
+    build: .
+    ports:
+      - "3210:3210"
+    restart: unless-stopped

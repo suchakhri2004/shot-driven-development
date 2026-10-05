@@ -1,0 +1,20 @@
+{
+  "name": "shot-driven-development",
+  "private": true,
+  "version": "0.1.0",
+  "workspaces": ["apps/*", "packages/*"],
+  "scripts": {
+    "play": "npm run build:web && npm run start",
+    "build:web": "npm run generate -w @sdd/web",
+    "start": "npm run start -w @sdd/server",
+    "share": "node scripts/share.mjs",
+    "dev:server": "npm run dev -w @sdd/server",
+    "dev:web": "npm run dev -w @sdd/web",
+    "test": "vitest run",
+    "typecheck": "npm run typecheck -w @sdd/engine && npm run typecheck -w @sdd/server"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.0",
+    "vitest": "^2.1.0"
+  }
+}

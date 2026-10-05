@@ -1,0 +1,5 @@
+{$DOMAIN:localhost} {
+	encode zstd gzip
+	# the game server serves both the web app and the websocket
+	reverse_proxy game:3210
+}

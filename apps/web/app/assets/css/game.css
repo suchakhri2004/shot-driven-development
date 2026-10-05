@@ -1,0 +1,536 @@
+/*
+ * Look & feel: "dive bar after deploy". Printed matter in a dark bar:
+ *   - few flat colours, thick ink outlines, HARD offset shadows (no blur), paper cards
+ *   - the only glowing thing is the neon sign on the home screen
+ * Performance rules for mid-range phones:
+ *   - animate only transform / opacity; no backdrop-filter; no blurred shadows on things that move
+ *   - one-shot animations are removed from the DOM by their owner
+ */
+:root {
+  --night: #0e0a0b;
+  --wall: #171113;
+  --wall2: #221a1c;
+  --line: #3b2a2c;
+  --shade: #050304;
+  --paper: #f3e7cc;
+  --paper-dark: #e3d2ad;
+  --ink: #140f10;
+  --text: #f3e7cc;
+  --dim: #a08f8b;
+  --amber: #e3242b;
+  --teal: #f2e8dc;
+  --red: #ef4b3f;
+  --blue: #4b9cf0;
+  --yellow: #f6c93d;
+  --purple: #9b70ee;
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+html,
+body,
+#__nuxt {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--night);
+  color: var(--text);
+  font-family: 'IBM Plex Sans Thai', system-ui, sans-serif;
+  overflow-x: hidden;
+  overscroll-behavior: none;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-text-size-adjust: 100%;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  touch-action: manipulation;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* Back wall of the bar: dark wood panelling, a warm lamp glow from above, darker corners. */
+.bg-atmosphere {
+  background:
+    radial-gradient(70% 38% at 50% -6%, rgba(227, 36, 43, 0.16), transparent 70%),
+    radial-gradient(120% 90% at 50% 50%, transparent 55%, rgba(0, 0, 0, 0.45)),
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.022) 0 2px, transparent 2px 74px),
+    linear-gradient(180deg, #1a1012, var(--night) 40%);
+}
+
+/* ───────── Building blocks ───────── */
+
+.panel {
+  background: var(--wall);
+  border: 2px solid var(--line);
+  border-radius: 16px;
+  box-shadow: 0 5px 0 var(--shade);
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 48px;
+  padding: 0 1.15rem;
+  border-radius: 14px;
+  font-family: 'Kanit', 'IBM Plex Sans Thai', sans-serif;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  color: var(--text);
+  background: var(--wall2);
+  border: 2px solid var(--shade);
+  box-shadow: 0 4px 0 var(--shade);
+  transition: transform 0.08s ease, box-shadow 0.08s ease, opacity 0.15s ease;
+}
+.btn:active:not(:disabled) {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 var(--shade);
+}
+.btn:disabled {
+  opacity: 0.42;
+}
+.btn-primary {
+  background: var(--amber);
+  color: var(--paper);
+}
+.btn-amber {
+  background: var(--amber);
+  color: var(--paper);
+}
+.btn-danger {
+  background: var(--red);
+  color: #fff4ec;
+}
+.btn-ghost {
+  background: transparent;
+  border-color: transparent;
+  box-shadow: none;
+}
+.btn-ghost:active:not(:disabled) {
+  transform: translateY(1px);
+  box-shadow: none;
+}
+
+.input {
+  width: 100%;
+  min-height: 48px;
+  padding: 0 0.9rem;
+  border-radius: 12px;
+  background: #0b0809;
+  border: 2px solid var(--line);
+  color: var(--text);
+  font-size: 16px; /* 16px stops iOS Safari from zooming on focus */
+}
+.input:focus {
+  outline: none;
+  border-color: var(--amber);
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.12rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  background: var(--wall2);
+  border: 1.5px solid var(--line);
+  white-space: nowrap;
+}
+
+.scroll-x {
+  display: flex;
+  overflow-x: auto;
+  scroll-snap-type: x proximity;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.scroll-x::-webkit-scrollbar {
+  display: none;
+}
+
+/* paper label: the little cream tag used for names */
+.tag {
+  display: inline-block;
+  max-width: 100%;
+  padding: 0.05rem 0.6rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font: 700 0.8rem 'Kanit', 'IBM Plex Sans Thai', sans-serif;
+  color: var(--ink);
+  background: var(--paper);
+  border: 2px solid var(--shade);
+  border-radius: 6px;
+  box-shadow: 2px 2px 0 var(--shade);
+}
+
+/* ───────── Cards: printed trading cards on cream stock ───────── */
+.card {
+  --accent: #8a7d7a;
+  position: relative;
+  flex: none;
+  width: 11em;
+  height: 15.4em;
+  display: flex;
+  flex-direction: column;
+  padding: 0.35em;
+  border-radius: 0.75em;
+  color: var(--ink);
+  background:
+    radial-gradient(circle at 20% 15%, rgba(255, 255, 255, 0.35), transparent 40%),
+    var(--paper);
+  border: 0.18em solid var(--shade);
+  box-shadow: 0.22em 0.3em 0 rgba(0, 0, 0, 0.6);
+  transition: transform 0.18s cubic-bezier(0.2, 0.8, 0.2, 1);
+  font-size: var(--card-size, 14px);
+}
+.card.sm {
+  --card-size: 11px;
+}
+.card.xs {
+  --card-size: 8px;
+}
+.card.lg {
+  --card-size: 17px;
+}
+/* playable cards get a bold amber frame (not a glow) */
+.card.playable {
+  outline: 0.22em solid var(--amber);
+  outline-offset: 0.12em;
+}
+.card.unplayable .card-art,
+.card.unplayable .card-name,
+.card.unplayable .card-cost {
+  filter: grayscale(0.85) brightness(0.92);
+}
+.card.selected {
+  transform: translateY(-1.2em) rotate(-2deg);
+  outline: 0.22em solid var(--teal);
+  outline-offset: 0.12em;
+}
+.card-head {
+  display: flex;
+  align-items: center;
+  gap: 0.35em;
+  min-height: 2.25em;
+}
+.card-cost {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 2.1em;
+  height: 2.1em;
+  border-radius: 50%;
+  font: 800 1.05em 'Kanit', sans-serif;
+  color: var(--paper);
+  background: var(--amber);
+  border: 0.14em solid var(--shade);
+  line-height: 1;
+}
+.card-cost.free {
+  background: var(--paper-dark);
+}
+.card-name {
+  min-width: 0;
+  font: 700 1em/1.05 'Kanit', 'IBM Plex Sans Thai', sans-serif;
+  letter-spacing: -0.005em;
+}
+.card-art {
+  position: relative;
+  height: 6.9em;
+  margin-top: 0.25em;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border: 0.14em solid var(--shade);
+  border-radius: 0.45em;
+  background-color: var(--accent);
+}
+/* halftone dots over every artwork: the screen-printed look */
+.card-art::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle, rgba(27, 20, 34, 0.18) 28%, transparent 30%) 0 0 / 0.42em 0.42em;
+  pointer-events: none;
+}
+.card-icon {
+  position: relative;
+  z-index: 1;
+  display: grid;
+}
+.card-type {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  z-index: 2;
+  padding: 0.1em 0.55em 0.05em;
+  border-top-right-radius: 0.4em;
+  font: 700 0.6em 'Kanit', sans-serif;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--paper);
+  background: var(--shade);
+}
+.card-text {
+  margin-top: 0.4em;
+  padding: 0 0.15em;
+  font-size: 0.86em;
+  font-weight: 600;
+  line-height: 1.25;
+  color: #3a2e2e;
+}
+.card-extra {
+  margin: 0.25em 0.15em 0;
+  font: 700 0.64em 'JetBrains Mono', monospace;
+  color: #b23a2f;
+}
+.card-incant {
+  margin-top: auto;
+  padding: 0 0.15em;
+  font: italic 500 0.6em/1.3 'JetBrains Mono', monospace;
+  color: #7d6b68;
+}
+.card.lg .card-serial {
+  display: none;
+}
+.card-serial {
+  position: absolute;
+  right: 0.55em;
+  bottom: 0.3em;
+  font: 500 0.5em 'JetBrains Mono', monospace;
+  color: #9e8c88;
+}
+
+/* Two-colour artwork per element / card type (flat colours + one pattern each) */
+.card-art[data-art='hotfix'] {
+  --accent: #ef4b3f;
+  background-image: radial-gradient(circle at 50% 62%, #ff8a5c 0 34%, transparent 35%);
+}
+.card-art[data-art='freeze'] {
+  --accent: #4b9cf0;
+  background-image:
+    radial-gradient(circle at 50% 55%, #9fd0ff 0 32%, transparent 33%),
+    repeating-linear-gradient(60deg, rgba(255, 255, 255, 0.16) 0 0.18em, transparent 0.18em 1.1em);
+}
+.card-art[data-art='deploy'] {
+  --accent: #f6c93d;
+  background-image:
+    repeating-linear-gradient(115deg, rgba(27, 20, 34, 0.14) 0 0.35em, transparent 0.35em 1.1em),
+    radial-gradient(circle at 50% 55%, #fff1a8 0 30%, transparent 31%);
+}
+.card-art[data-art='defensive'] {
+  --accent: #7fc8f8;
+  background-image: repeating-radial-gradient(circle at 50% 55%, rgba(255, 255, 255, 0.28) 0 0.2em, transparent 0.2em 0.9em);
+}
+.card-art[data-art='support'] {
+  --accent: #3fbfa3;
+  background-image:
+    radial-gradient(circle at 28% 70%, #8fe3cd 0 14%, transparent 15%),
+    radial-gradient(circle at 74% 34%, #8fe3cd 0 10%, transparent 11%),
+    radial-gradient(circle at 50% 55%, #b9f0e1 0 30%, transparent 31%);
+}
+.card-art[data-art='curse'] {
+  --accent: #9b70ee;
+  background-image:
+    repeating-conic-gradient(from 0deg at 50% 55%, rgba(27, 20, 34, 0.16) 0 12deg, transparent 12deg 30deg),
+    radial-gradient(circle at 50% 55%, #c9b0ff 0 28%, transparent 29%);
+}
+.card-art[data-art='artifact'] {
+  --accent: #ffaa2b;
+  background-image:
+    repeating-conic-gradient(from 0deg at 50% 55%, #ffd27a 0 10deg, transparent 10deg 20deg),
+    radial-gradient(circle at 50% 55%, #ffe3a6 0 30%, transparent 31%);
+}
+.card-art[data-art='event'] {
+  --accent: #f6c93d;
+  background-image:
+    radial-gradient(circle at 50% 55%, var(--paper) 0 30%, transparent 31%),
+    repeating-linear-gradient(45deg, #1b1422 0 0.6em, #f6c93d 0.6em 1.2em);
+}
+
+/* ───────── Meters ───────── */
+.meter-track {
+  height: 0.55rem;
+  border-radius: 999px;
+  background: #050304;
+  border: 1.5px solid var(--line);
+  overflow: hidden;
+}
+.meter-fill {
+  height: 100%;
+  width: 100%;
+  border-radius: 999px;
+  transform-origin: left center;
+  transition: transform 0.45s cubic-bezier(0.2, 0.8, 0.2, 1), background-color 0.3s ease;
+}
+
+/* ───────── Motion ───────── */
+@keyframes float-up {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 6px, 0) scale(0.7);
+  }
+  15% {
+    opacity: 1;
+    transform: translate3d(0, -4px, 0) scale(1.25);
+  }
+  100% {
+    opacity: 0;
+    transform: translate3d(0, -46px, 0) scale(1);
+  }
+}
+@keyframes shake {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+  20% {
+    transform: translate3d(-6px, 0, 0) rotate(-2deg);
+  }
+  40% {
+    transform: translate3d(5px, 0, 0) rotate(1.5deg);
+  }
+  60% {
+    transform: translate3d(-4px, 0, 0);
+  }
+  80% {
+    transform: translate3d(3px, 0, 0);
+  }
+}
+@keyframes sheet-up {
+  from {
+    transform: translate3d(0, 100%, 0);
+  }
+  to {
+    transform: translate3d(0, 0, 0);
+  }
+}
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes pop-in {
+  0% {
+    opacity: 0;
+    transform: scale(0.6) translate3d(0, 12px, 0);
+  }
+  70% {
+    opacity: 1;
+    transform: scale(1.06);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+@keyframes stamp {
+  0% {
+    opacity: 0;
+    transform: scale(2.4) rotate(-14deg);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(0.94) rotate(-8deg);
+  }
+  100% {
+    transform: scale(1) rotate(-8deg);
+  }
+}
+@keyframes flash {
+  0% {
+    opacity: 0.55;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+@keyframes cast-fly {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 60px, 0) scale(0.5) rotate(-6deg);
+  }
+  25% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1.06) rotate(2deg);
+  }
+  80% {
+    opacity: 1;
+    transform: translate3d(0, -6px, 0) scale(1) rotate(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translate3d(0, -26px, 0) scale(0.95);
+  }
+}
+@keyframes siren {
+  0%,
+  100% {
+    opacity: 0.08;
+  }
+  50% {
+    opacity: 0.35;
+  }
+}
+@keyframes shrink {
+  from {
+    transform: scaleX(1);
+  }
+  to {
+    transform: scaleX(0);
+  }
+}
+@keyframes confetti {
+  0% {
+    opacity: 1;
+    transform: translate3d(0, -10vh, 0) rotate(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translate3d(var(--dx, 0), 110vh, 0) rotate(540deg);
+  }
+}
+
+.anim-shake {
+  animation: shake 0.4s ease;
+}
+.anim-sheet {
+  animation: sheet-up 0.26s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.anim-fade {
+  animation: fade-in 0.2s ease;
+}
+.anim-pop {
+  animation: pop-in 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.anim-stamp {
+  animation: stamp 0.45s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.vlist-move {
+  transition: transform 0.3s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
