@@ -32,7 +32,7 @@ export default defineNuxtConfig({
         { name: 'viewport', content: 'width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no' },
         { name: 'theme-color', content: '#0e0a0b' },
         { name: 'mobile-web-app-capable', content: 'yes' },
-        { name: 'description', content: 'เกมการ์ดดื่มออนไลน์ 3–6 คน สำหรับชาว dev' }
+        { name: 'description', content: 'เกมการ์ดดื่มออนไลน์ 2–6 คน สำหรับชาว dev' }
       ],
       link: [
         // tab icon: a little shot glass drawn inline in SVG (red shot, ink outline), no image file

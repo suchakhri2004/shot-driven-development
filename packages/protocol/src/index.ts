@@ -1,8 +1,11 @@
 import type { CardDef, Fx, GameConfig, PublicState } from '@sdd/engine'
 import { z } from 'zod'
 
-export const MIN_PLAYERS = 3
+export const MIN_PLAYERS = 2
 export const MAX_PLAYERS = 6
+/** Duel mode (house rule H2): a 2-player game starts with less Uptime so it stays short. */
+export const DUEL_PLAYERS = 2
+export const DUEL_HP = 6
 export const ROOM_CODE_LENGTH = 6
 
 /* ───────────────────────── Client → Server payloads (validated on the server) ───────────────────────── */
@@ -94,6 +97,8 @@ export interface LobbyView {
   config: GameConfig
   minPlayers: number
   maxPlayers: number
+  /** With exactly `players` in the room the game is a duel that starts at `hp` Uptime. */
+  duel: { players: number; hp: number }
 }
 
 export interface GameStatePayload {

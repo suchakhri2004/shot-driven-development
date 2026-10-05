@@ -1,6 +1,6 @@
 # กติกา ↔ โค้ด ↔ test
 
-อ้างอิงเลข R1–R19 จาก [PLAN.md](../PLAN.md) (กติกาจากคู่มือที่ได้รับ) และ H1 (house rule ของโต๊ะเรา)
+อ้างอิงเลข R1–R19 จาก [PLAN.md](../PLAN.md) (กติกาจากคู่มือที่ได้รับ) และ H1–H2 (house rule ของโต๊ะเรา)
 test ทุกตัวอยู่ใน `packages/engine/test/` (`setup-and-turns` = ST, `combat` = CB, `simulation` = SIM)
 
 | # | กติกา | โค้ด (`packages/engine/src`) | test |
@@ -25,5 +25,6 @@ test ทุกตัวอยู่ใน `packages/engine/test/` (`setup-and-tu
 | R18 | Too Much Mana / ไปต่อไม่ไหว → ตกรอบ | `actions/decisions.ts` (declareKo), `actions/drink.ts` (enforcePotionLimit) | CB "declare KO", "potion limit" |
 | R19 | เหลือคนสุดท้ายชนะ | `elimination.ts` (finishGame) | CB "ends the game when one player is left", SIM |
 | H1 | ช็อตเปิดเกม: ทุกคนซด 1 ครั้งก่อนเริ่ม (+3) | `actions/drink.ts`, `setup.ts` (phase opening_shot) | ST กลุ่ม "opening shot" |
+| H2 | โหมดดวล: ห้องที่มี 2 คน เริ่มด้วย Uptime 6 (`DUEL_HP`) กติกาอื่นเหมือนเดิม การ์ดข้ามเทิร์นทำให้คนเล่นได้เล่นต่ออีกเทิร์น | `protocol` (DUEL_PLAYERS, DUEL_HP), `server/rooms/room.ts` (startGame) | server "starts a 2-player room as a duel", SIM 2 คน |
 
-นอกจากนี้: **SIM** สุ่มเล่นเต็มเกม 16 เกม (3–6 คน) ตรวจทุก action ว่าจำนวนการ์ดรวมคงที่, Mana ไม่ติดลบ, bank + Mana ผู้เล่นรวมคงที่, ผู้ตกรอบไม่มีการ์ด, และ projection ไม่รั่วมือคนอื่น
+นอกจากนี้: **SIM** สุ่มเล่นเต็มเกม 20 เกม (2–6 คน) ตรวจทุก action ว่าจำนวนการ์ดรวมคงที่, Mana ไม่ติดลบ, bank + Mana ผู้เล่นรวมคงที่, ผู้ตกรอบไม่มีการ์ด, และ projection ไม่รั่วมือคนอื่น

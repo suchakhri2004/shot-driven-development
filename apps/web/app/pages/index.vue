@@ -43,7 +43,7 @@ const card = (id: string) => DECK.find((c) => c.id === id)!
           <NuxtLink to="/rules" class="btn btn-ghost w-full text-dim"><GameIcon name="rules" tone="steel" /> วิธีเล่น</NuxtLink>
         </div>
         <footer class="space-y-1 text-center">
-          <p class="text-xs text-dim">3–6 คน · คนละเครื่อง · เล่นออนไลน์ผ่านรหัสห้อง</p>
+          <p class="text-xs text-dim">2–6 คน · คนละเครื่อง · เล่นออนไลน์ผ่านรหัสห้อง</p>
           <p class="text-[10px] text-dim/60">{{ ICON_CREDIT }}</p>
         </footer>
       </template>

@@ -34,12 +34,14 @@ watch(targetId, () => (artifactId.value = null))
 
 // ── discard cost ──
 const slots = computed(() => costSlots(def.value))
+// only cards that can fill at least one cost slot, so a wrong pick is impossible
 const payable = computed(() =>
-  state.value.hand.filter((c) => c.iid !== props.card.iid)
+  state.value.hand.filter((c) => c.iid !== props.card.iid && slots.value.some((slot) => matchesSlot(slot, defs.value[c.defId])))
 )
 const paying = ref<string[]>([])
 function togglePay(iid: string) {
-  paying.value = paying.value.includes(iid) ? paying.value.filter((id) => id !== iid) : [...paying.value, iid]
+  if (paying.value.includes(iid)) paying.value = paying.value.filter((id) => id !== iid)
+  else if (paying.value.length < slots.value.length) paying.value = [...paying.value, iid]
 }
 const costComplete = computed(
   () =>

@@ -1,3 +1,4 @@
+import { DUEL_HP } from '@sdd/protocol'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { startTestServer, seatPlayers, TestClient } from './helpers'
 
@@ -77,7 +78,23 @@ describe('abuse protection', () => {
 })
 
 describe('lobby controls', () => {
-  it('only starts with 3+ players, all ready, and only for the host', async () => {
+  it('starts a 2-player room as a duel with less Uptime', async () => {
+    const host = await connect()
+    const code = await host.create('Alice')
+    expect(await host.emit('start_game')).toMatchObject({ ok: false, error: 'NOT_ENOUGH_PLAYERS' })
+
+    const bob = await connect()
+    await bob.join(code, 'Bob')
+    await bob.emit('player_ready', { ready: true })
+    expect(await host.emit('start_game')).toMatchObject({ ok: true })
+    await bob.waitFor((c) => c.game !== null)
+    expect(bob.game!.state.players.map((p) => [p.hp, p.maxHp])).toEqual([
+      [DUEL_HP, DUEL_HP],
+      [DUEL_HP, DUEL_HP]
+    ])
+  })
+
+  it('only starts with 2+ players, all ready, and only for the host', async () => {
     const host = await connect()
     const code = await host.create('Alice')
     expect(await host.emit('start_game')).toMatchObject({ ok: false, error: 'NOT_ENOUGH_PLAYERS' })

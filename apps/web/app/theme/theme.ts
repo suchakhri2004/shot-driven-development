@@ -102,7 +102,7 @@ const errors: Record<string, string> = {
   ROOM_IN_PROGRESS: 'ห้องนี้เริ่มเล่นไปแล้ว',
   INVALID_SESSION: 'เข้าห้องเดิมไม่ได้ (เซสชันหมดอายุ)',
   HOST_ONLY: 'เฉพาะเจ้าของห้องเท่านั้น',
-  NOT_ENOUGH_PLAYERS: 'ต้องมีผู้เล่นอย่างน้อย 3 คน',
+  NOT_ENOUGH_PLAYERS: 'ต้องมีผู้เล่นอย่างน้อย 2 คน',
   PLAYERS_NOT_READY: 'ยังมีผู้เล่นที่ไม่พร้อม',
   PLAYER_DISCONNECTED: 'มีผู้เล่นหลุดการเชื่อมต่อ',
   RATE_LIMITED: 'กดถี่เกินไป รอสักครู่',

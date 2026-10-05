@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { theme } from '~/theme/theme'
+
 const room = useRoom()
 const lobby = computed(() => room.lobby.value!)
 const editingProfile = ref(false)
@@ -78,6 +80,14 @@ async function leave() {
       </TransitionGroup>
 
       <button class="btn mt-3 w-full text-sm" @click="editingProfile = true">แก้ไขโปรไฟล์ของฉัน</button>
+    </section>
+
+    <section v-if="lobby.players.length === lobby.duel.players" class="panel flex items-center gap-3 border-neon/60 p-3">
+      <GameIcon name="attack" size="2rem" />
+      <div>
+        <h2 class="font-display font-bold text-neon">โหมดดวล 1v1</h2>
+        <p class="text-xs text-dim">มี 2 คน เกมจะสั้นลง: {{ theme.hp.name }} เริ่มที่ {{ lobby.duel.hp }} กติกาอื่นเหมือนเดิม</p>
+      </div>
     </section>
 
     <LobbyConfig :lobby="lobby" :editable="room.isHost.value" />
