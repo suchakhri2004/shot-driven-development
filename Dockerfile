@@ -30,5 +30,5 @@ COPY --from=build /app/apps/web/.output/public apps/web/.output/public
 
 ENV NODE_ENV=production PORT=3210
 EXPOSE 3210
-HEALTHCHECK --interval=30s --timeout=3s CMD wget -qO- http://localhost:3210/health || exit 1
+HEALTHCHECK --interval=30s --timeout=3s CMD wget -qO- "http://localhost:${PORT}/health" || exit 1
 CMD ["npx", "tsx", "apps/server/src/index.ts"]

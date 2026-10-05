@@ -4,6 +4,10 @@
 
 > เกมดื่ม 18+ ทำไว้เล่นกันเองในกลุ่ม ไม่ได้ขาย ดื่มอย่างรับผิดชอบและไม่ขับรถหลังดื่ม (ผู้เล่นเลือก "สายไม่ดื่มแอลกอฮอล์" ได้ในล็อบบี้)
 
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/suchakhri2004/shot-driven-development)
+
+กดปุ่มด้านบนเพื่อเปิดเกมออนไลน์บน Render ฟรี (รายละเอียดใน [docs/DEPLOY.md](docs/DEPLOY.md))
+
 ## เริ่มเล่น (ฟรี ไม่ต้องสมัครอะไร)
 
 ต้องมี Node.js 22+
