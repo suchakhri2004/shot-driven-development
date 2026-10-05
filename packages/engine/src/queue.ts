@@ -26,6 +26,7 @@ function expandEffect(s: GameState, effect: Effect, ctx: EffectCtx): Step[] {
     case 'swapHands':
     case 'counter':
     case 'destroyArtifact':
+    case 'interlude':
       return [{ effect, targetId: null, ctx }]
     case 'draw':
       return targetIds(s, effect.to, ctx).flatMap((id) =>

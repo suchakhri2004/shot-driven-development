@@ -25,6 +25,9 @@ export interface StatusDef {
   skipTurn?: boolean
 }
 
+/** House rule H3: a card can stop the game for a coffee break or a real-life mini-game. */
+export type InterludeMode = 'pause' | 'minigame'
+
 export type Effect =
   | { kind: 'damage'; amount: number; to: EffectTarget }
   | { kind: 'heal'; amount: number; to: EffectTarget }
@@ -36,6 +39,7 @@ export type Effect =
   | { kind: 'swapHands' }
   | { kind: 'counter' }
   | { kind: 'destroyArtifact' }
+  | { kind: 'interlude'; mode: InterludeMode }
 
 export interface DiscardCost {
   count: number
@@ -60,6 +64,8 @@ export interface CardDef {
   image?: string
   source: 'test-fixture' | 'official-reskin' | 'house-original'
   needsConfirmation?: boolean
+  /** House-rule card: left out of the deck when `config.houseCards` is off. */
+  house?: boolean
 }
 
 export interface CardInstance {
@@ -95,6 +101,12 @@ export interface GameConfig {
   shortfallSec: number
   discardChoiceSec: number
   responderScope: 'targeted' | 'all'
+  /** House rule H3: shuffle the coffee break and mini-game cards into the deck. */
+  houseCards: boolean
+  /** How long a coffee break or a mini-game may last before the game resumes by itself. */
+  interludeSec: number
+  /** Shot Stack lost by each player who presses "I lost" in a mini-game (they also drink for real). */
+  miniGamePenalty: number
 }
 
 export const DEFAULT_CONFIG: GameConfig = {
@@ -110,7 +122,10 @@ export const DEFAULT_CONFIG: GameConfig = {
   responseWindowSec: 10,
   shortfallSec: 15,
   discardChoiceSec: 20,
-  responderScope: 'targeted'
+  responderScope: 'targeted',
+  houseCards: true,
+  interludeSec: 600,
+  miniGamePenalty: 3
 }
 
 export interface PlayerInit {
@@ -170,6 +185,19 @@ export type Pending =
   | { id: number; kind: 'response'; eligible: string[]; passed: string[]; timeoutSec: number }
   | { id: number; kind: 'shortfall'; playerId: string; remaining: number; timeoutSec: number }
   | { id: number; kind: 'discard'; playerId: string; count: number; timeoutSec: number }
+  /**
+   * The game is stopped for a break or a mini-game. `playerId` played the card and may end it early.
+   * `roll` picks the mini-game from the list on the client; `losers` pressed "I lost" (once each).
+   */
+  | {
+      id: number
+      kind: 'interlude'
+      mode: InterludeMode
+      playerId: string
+      roll: number
+      losers: string[]
+      timeoutSec: number
+    }
 
 export interface LogEntry {
   seq: number
@@ -196,6 +224,9 @@ export type Fx =
   | { kind: 'shortfall'; target: string; amount: number }
   | { kind: 'opening_done' }
   | { kind: 'winner'; player: string | null }
+  | { kind: 'interlude'; mode: InterludeMode; owner: string }
+  | { kind: 'interlude_end' }
+  | { kind: 'minigame_loss'; target: string; amount: number }
 
 export interface EliminationRecord {
   playerId: string
@@ -241,6 +272,8 @@ export type Action =
   | { type: 'decline_shortfall' }
   | { type: 'choose_discard'; cardIds: string[] }
   | { type: 'declare_ko' }
+  | { type: 'end_interlude' }
+  | { type: 'lose_minigame' }
   | { type: 'timeout'; pendingId: number }
 
 export type DispatchResult =

@@ -238,6 +238,8 @@ export class Room {
   handleGameAction(memberId: string, actionId: string, action: ClientAction): Ack {
     if (this.phase === 'lobby' || !this.game) return { ok: false, error: 'GAME_NOT_STARTED' }
     this.touch()
+    // the host can always end a break, e.g. when the player who started it has left the table
+    if (action.type === 'end_interlude' && memberId === this.hostId) return this.game.endInterlude()
     return this.game.handleAction(memberId, actionId, action)
   }
 

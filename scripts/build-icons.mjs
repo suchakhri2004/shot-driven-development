@@ -105,7 +105,11 @@ const ICONS = {
   'team-building': 'party-popper',
   'freeze-week': 'snowflake-2',
   'server-migration': 'truck',
-  'bug-bash': 'spotted-bug'
+  'bug-bash': 'spotted-bug',
+  // house-rule cards (H3)
+  'coffee-break': 'coffee-mug',
+  hackathon: 'rolling-dices',
+  pause: 'hourglass'
 }
 
 const missing = Object.entries(ICONS).filter(([, gi]) => !set.icons[gi])

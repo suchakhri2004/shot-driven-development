@@ -4,6 +4,7 @@ import { addLog } from '../log'
 import { getPlayer, removeFromHand } from '../lookup'
 import { shuffleInPlace } from '../rng'
 import { declineShortfall } from '../shortfall'
+import { closeInterlude } from './interlude'
 import type { GameState, PlayerState } from '../types'
 
 export function passResponse(s: GameState, player: PlayerState): void {
@@ -55,6 +56,8 @@ export function timeoutPending(s: GameState, pendingId: number): void {
       s.pending = null
       return discardChosen(s, player, random)
     }
+    case 'interlude':
+      return closeInterlude(s)
   }
 }
 

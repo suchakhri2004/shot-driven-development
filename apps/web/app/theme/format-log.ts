@@ -62,6 +62,16 @@ export function formatLog(entry: LogEntry, { nameOf, cards }: LogContext): { ico
       return { icon: 'rebase', text: 'สับกอง /dev/null กลับมาเป็น Backlog' }
     case 'winner':
       return { icon: 'trophy', text: `${actor} คือ ${theme.winner}` }
+    case 'pause_start':
+      return { icon: 'coffee-break', text: `${actor} ขอพักเกม` }
+    case 'pause_end':
+      return { icon: 'play', text: 'เลิกพัก เล่นต่อ' }
+    case 'minigame_start':
+      return { icon: 'hackathon', text: `${actor} เปิดมินิเกม` }
+    case 'minigame_end':
+      return { icon: 'play', text: 'จบมินิเกม เล่นต่อ' }
+    case 'minigame_loss':
+      return { icon: 'drink', text: `${target} แพ้มินิเกม ดื่ม 1 ช็อต เสีย ${n} ${theme.mana.name}` }
     default:
       return { icon: 'sparkles', text: entry.kind }
   }

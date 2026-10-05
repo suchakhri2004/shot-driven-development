@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { DECK } from '../src'
+import { DECK, MINI_GAMES } from '../src'
 
 const total = (cards: typeof DECK) => cards.reduce((n, c) => n + c.copies, 0)
 
@@ -7,7 +7,8 @@ describe('playable deck integrity', () => {
   it('has unique card ids and sensible size', () => {
     const ids = DECK.map((c) => c.id)
     expect(new Set(ids).size).toBe(ids.length)
-    expect(total(DECK)).toBe(90)
+    expect(total(DECK.filter((c) => !c.house))).toBe(90)
+    expect(total(DECK.filter((c) => c.house))).toBe(6)
     expect(DECK.every((c) => c.copies >= 1 && c.source === 'house-original' && !c.needsConfirmation)).toBe(true)
   })
 
@@ -68,6 +69,15 @@ describe('playable deck integrity', () => {
       }
       expect(card.description.length, card.id).toBeGreaterThan(0)
     }
+  })
+
+  it('keeps the coffee break and mini-game as switchable house cards', () => {
+    for (const card of DECK.filter((c) => c.effects.some((e) => e.kind === 'interlude'))) {
+      expect(card.house, card.id).toBe(true)
+      expect(card.target, card.id).toBe('none')
+    }
+    expect(MINI_GAMES.length).toBeGreaterThanOrEqual(15)
+    expect(new Set(MINI_GAMES.map((g) => g.id)).size).toBe(MINI_GAMES.length)
   })
 
   it('gives every attack, curse and artifact something to say out loud (incantation)', () => {

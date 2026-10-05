@@ -75,6 +75,11 @@ export function nextRandomMove(s: GameState, rng: { rng: number }, actionsThisTu
       action: { type: 'choose_discard', cardIds: player.hand.slice(0, pending.count).map((c) => c.iid) }
     }
   }
+  if (pending?.kind === 'interlude') {
+    const loser = s.players.find((p) => p.alive && !pending.losers.includes(p.id))
+    if (pending.mode === 'minigame' && loser && chance(rng, 0.4)) return { playerId: loser.id, action: { type: 'lose_minigame' } }
+    return { playerId: pending.playerId, action: { type: 'end_interlude' } }
+  }
   if (s.phase === 'opening_shot') {
     return { playerId: s.players.find((p) => p.alive && !p.openingShotDone)!.id, action: { type: 'drink' } }
   }

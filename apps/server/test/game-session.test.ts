@@ -98,6 +98,27 @@ describe('server-side timers', () => {
     session.stop()
   })
 
+  it('holds a coffee break until its owner, the host or the 10 minute timer ends it', () => {
+    const { session } = makeSession({ alice: false })
+    const s = session.state
+    s.players[0].hand = [{ iid: 'brk', defId: 'coffee-break' }]
+    session.start()
+    // alice is offline but the break must not be skipped by her auto move
+    session.handleAction('alice', 'a1', { type: 'play_card', cardId: 'brk' })
+    expect(session.state.pending).toMatchObject({ kind: 'interlude', mode: 'pause' })
+    vi.advanceTimersByTime(599_000)
+    expect(session.state.pending?.kind).toBe('interlude')
+    vi.advanceTimersByTime(2000)
+    expect(session.state.pending).toBeNull()
+
+    session.state.players[0].hand = [{ iid: 'brk2', defId: 'coffee-break' }]
+    session.handleAction('alice', 'a2', { type: 'play_card', cardId: 'brk2' })
+    expect(session.endInterlude()).toEqual({ ok: true })
+    expect(session.state.pending).toBeNull()
+    expect(session.endInterlude()).toMatchObject({ ok: false, error: 'NO_INTERLUDE' })
+    session.stop()
+  })
+
   it('answers a repeated actionId with the original result and does not act twice', () => {
     const { session } = makeSession()
     const first = session.handleAction('bob', 'dup-1', { type: 'drink' })

@@ -23,6 +23,10 @@ export function decide(view: GameStatePayload, cards: Record<string, CardDef>, a
       ? { type: 'choose_discard', cardIds: s.hand.slice(0, pending.count).map((c) => c.iid) }
       : null
   }
+  if (pending?.kind === 'interlude') {
+    if (pending.playerId === me.id) return { type: 'end_interlude' }
+    return pending.mode === 'minigame' && !pending.losers.includes(me.id) ? { type: 'lose_minigame' } : null
+  }
 
   if (s.phase === 'opening_shot') return me.openingShotDone ? null : { type: 'drink' }
   if (s.phase !== 'action' || s.activeId !== me.id) return null

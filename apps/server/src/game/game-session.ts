@@ -60,6 +60,13 @@ export class GameSession {
     return result
   }
 
+  /** Ends the current coffee break or mini-game the same way its timer would. */
+  endInterlude(): Ack {
+    const pending = this.state.pending
+    if (pending?.kind !== 'interlude') return { ok: false, error: 'NO_INTERLUDE' }
+    return this.apply(SYSTEM_PLAYER, { type: 'timeout', pendingId: pending.id })
+  }
+
   onConnectionChange(): void {
     this.syncTimers()
     this.broadcast([])

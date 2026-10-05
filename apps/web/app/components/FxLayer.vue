@@ -43,8 +43,14 @@ const defOf = (id?: string) => (id ? room.cards.value[id] : undefined)
       <div class="drink-call">
         <PlayerAvatar :avatar="d.avatar" :size="48" />
         <div class="flex min-w-0 flex-col items-start gap-1">
-          <span class="stamp red anim-stamp">{{ d.sober ? 'ซดน้ำ!' : 'ซด!' }}</span>
-          <span class="tag">{{ d.name }} · ช็อตที่ {{ d.shot }}</span>
+          <template v-if="d.lost !== undefined">
+            <span class="stamp red anim-stamp">แพ้! {{ d.sober ? 'ซดน้ำ' : 'ซด' }}</span>
+            <span class="tag">{{ d.name }} · {{ theme.mana.name }} -{{ d.lost }}</span>
+          </template>
+          <template v-else>
+            <span class="stamp red anim-stamp">{{ d.sober ? 'ซดน้ำ!' : 'ซด!' }}</span>
+            <span class="tag">{{ d.name }} · ช็อตที่ {{ d.shot }}</span>
+          </template>
         </div>
       </div>
     </div>

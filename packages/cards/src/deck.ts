@@ -1,7 +1,7 @@
 import type { CardDef } from '@sdd/engine'
 
 /**
- * The playable deck (90 cards), designed for this project.
+ * The playable deck (90 cards, plus 6 house-rule cards that a room can switch off), designed for this project.
  *
  * It follows the structure of the original game (Fire/Ice/Electric attacks, defensive spells that
  * answer attacks, supporting spells, curses, artifacts, events, "discard a <element> card" costs)
@@ -692,5 +692,33 @@ export const DECK: CardDef[] = [
       { kind: 'draw', count: 1, to: 'all-players' }
     ],
     copies: 1
+  },
+
+  /* ── house-rule cards (H3): not in the original game, removed when the room turns "houseCards" off ── */
+  {
+    ...original,
+    house: true,
+    id: 'coffee-break',
+    name: 'Coffee Break',
+    description: 'พักเกม 10 นาที คนเล่นการ์ดใบนี้กดเลิกพักก่อนได้',
+    type: 'support',
+    cost: { mana: 0 },
+    target: 'none',
+    effects: [{ kind: 'interlude', mode: 'pause' }],
+    incantation: 'brb ไปชงกาแฟแป๊บ',
+    copies: 2
+  },
+  {
+    ...original,
+    house: true,
+    id: 'hackathon',
+    name: 'Hackathon',
+    description: 'สุ่มมินิเกมให้ทั้งวงเล่นกันจริงๆ ใครแพ้ดื่ม 1 ช็อต และเสีย Shot Stack 3',
+    type: 'support',
+    cost: { mana: 1 },
+    target: 'none',
+    effects: [{ kind: 'interlude', mode: 'minigame' }],
+    incantation: 'ทุกคนวางเมาส์ แล้วมาเล่นเกมกัน!',
+    copies: 4
   }
 ]

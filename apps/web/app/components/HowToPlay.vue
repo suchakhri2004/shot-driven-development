@@ -18,7 +18,8 @@ const sections = [
   { id: 'types', label: 'ประเภท' },
   { id: 'defend', label: 'ตอบโต้' },
   { id: 'short', label: 'ไม่พอ' },
-  { id: 'out', label: 'ตกรอบ' }
+  { id: 'out', label: 'ตกรอบ' },
+  { id: 'house', label: 'การ์ดพิเศษ' }
 ]
 
 const rebase = [1, 2, 3, 4]
@@ -253,6 +254,22 @@ function jump(id: string) {
         <li>• Artifact อย่าง Keyboard (ซดได้ +4) ช่วยให้ซดน้อยลงแต่ได้เท่าเดิม</li>
         <li>• ซดเมื่อจำเป็นเท่านั้น คุมสติ คุมปริมาณ</li>
       </ul>
+    </section>
+
+    <!-- 10. house cards -->
+    <section id="howto-house" class="panel space-y-3 p-4">
+      <h2 class="font-display text-xl font-bold text-neon"><GameIcon name="hackathon" /> การ์ดพิเศษ (กติกาบ้าน)</h2>
+      <p class="text-xs text-dim">ไม่มีในเกมต้นฉบับ เจ้าของห้องปิดได้ในตั้งค่าห้อง</p>
+      <div class="grid grid-cols-2 gap-3">
+        <div class="flex flex-col items-center gap-2 text-center">
+          <GameCard :def="card('coffee-break')" size="sm" />
+          <span class="text-xs"><b>พักเกม 10 นาที</b> คนเล่นการ์ดหรือเจ้าของห้องกดเลิกพักก่อนได้</span>
+        </div>
+        <div class="flex flex-col items-center gap-2 text-center">
+          <GameCard :def="card('hackathon')" size="sm" />
+          <span class="text-xs"><b>สุ่มมินิเกม</b> เล่นกันจริงในวง ใครแพ้กด "ฉันแพ้" ดื่ม 1 ช็อต เสีย {{ theme.mana.name }} 3</span>
+        </div>
+      </div>
     </section>
     <p class="px-2 text-center text-[10px] text-dim/70">{{ ICON_CREDIT }}</p>
   </div>

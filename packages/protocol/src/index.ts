@@ -40,7 +40,8 @@ export const updateConfigSchema = z.object({
       responseWindowSec: seconds,
       shortfallSec: seconds,
       discardChoiceSec: seconds,
-      responderScope: z.enum(['targeted', 'all'])
+      responderScope: z.enum(['targeted', 'all']),
+      houseCards: z.boolean()
     })
     .partial()
     .strict()
@@ -63,7 +64,10 @@ export const actionSchema = z.discriminatedUnion('type', [
   z.object({ type: z.literal('pass_response') }),
   z.object({ type: z.literal('decline_shortfall') }),
   z.object({ type: z.literal('choose_discard'), cardIds: z.array(cardId).max(10) }),
-  z.object({ type: z.literal('declare_ko') })
+  z.object({ type: z.literal('declare_ko') }),
+  /** The card's owner ends a break or mini-game early. The host may too (handled by the room). */
+  z.object({ type: z.literal('end_interlude') }),
+  z.object({ type: z.literal('lose_minigame') })
 ])
 export const gameActionSchema = z.object({ actionId: z.string().min(8).max(64), action: actionSchema })
 

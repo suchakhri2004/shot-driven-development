@@ -49,6 +49,7 @@ function dealStartingHands(s: GameState): void {
 export function createGame(options: CreateGameOptions): GameState {
   if (options.players.length < 2) throw new GameError('NOT_ENOUGH_PLAYERS')
   const config: GameConfig = { ...DEFAULT_CONFIG, ...options.config }
+  const cards = config.houseCards ? options.cards : options.cards.filter((def) => !def.house)
 
   const s: GameState = {
     version: 0,
@@ -67,7 +68,7 @@ export function createGame(options: CreateGameOptions): GameState {
     log: [],
     logSeq: 0,
     config,
-    defs: Object.fromEntries(options.cards.map((def) => [def.id, def])),
+    defs: Object.fromEntries(cards.map((def) => [def.id, def])),
     rng: hashSeed(options.seed ?? Date.now()),
     nextIid: 1,
     nextPendingId: 1,
@@ -78,7 +79,7 @@ export function createGame(options: CreateGameOptions): GameState {
     fx: []
   }
 
-  for (const def of options.cards) {
+  for (const def of cards) {
     for (let i = 0; i < def.copies; i++) s.drawPile.push(newInstance(s, def.id))
   }
   shuffleInPlace(s, s.drawPile)

@@ -45,6 +45,7 @@ onBeforeUnmount(() => void wakeLock?.release())
     <OpeningShot v-if="state.phase === 'opening_shot'" />
     <ResponseModal @inspect="inspecting = $event" />
     <DecisionModals />
+    <InterludeOverlay />
     <CardInspector v-if="inspecting" :key="inspecting.iid" :card="inspecting" @close="inspecting = null" />
     <GameMenu v-if="menuOpen" @close="menuOpen = false" @log="(menuOpen = false), (logOpen = true)" @rules="(menuOpen = false), (rulesOpen = true)" />
     <GameLogSheet v-if="logOpen" @close="logOpen = false" />

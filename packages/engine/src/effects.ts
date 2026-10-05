@@ -1,3 +1,4 @@
+import { startInterlude } from './actions/interlude'
 import { drawCard } from './deck'
 import { addLog, emit } from './log'
 import { findPlayer } from './lookup'
@@ -35,6 +36,9 @@ export function runStep(s: GameState, step: Step): void {
       return counterSpell(s, ctx)
     case 'destroyArtifact':
       return destroyArtifact(s, ctx)
+    case 'interlude':
+      if (ctx.sourceId) startInterlude(s, ctx.sourceId, effect.mode)
+      return
   }
 }
 

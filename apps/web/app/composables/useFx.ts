@@ -19,13 +19,17 @@ export interface Banner {
   by?: 'hp' | 'ko'
 }
 
-/** "X drank" notice shown to the whole table, so nobody can press drink without actually drinking. */
+/**
+ * "X drank" notice shown to the whole table, so nobody can press drink without actually drinking.
+ * `lost` = they lost a mini-game: they drink for real and lose that much Shot Stack.
+ */
 export interface DrinkCall {
   id: number
   name: string
   avatar: string
   shot: number
   sober: boolean
+  lost?: number
 }
 
 const DRINK_CALL_MS = 1500
@@ -62,8 +66,8 @@ export function useFx() {
   }
 
   /** Drink notices play one after another (the opening shot can bring several at once). */
-  function drinkCall(player: PublicPlayer, myId: string) {
-    const item = { id: nextId++, name: player.name, avatar: player.avatar, shot: player.potionsDrunk, sober: player.nonAlcoholic }
+  function drinkCall(player: PublicPlayer, myId: string, lost?: number) {
+    const item = { id: nextId++, name: player.name, avatar: player.avatar, shot: player.potionsDrunk, sober: player.nonAlcoholic, lost }
     const delay = Math.max(0, drinkCallsFreeAt - Date.now())
     drinkCallsFreeAt = Date.now() + delay + DRINK_CALL_MS
     setTimeout(() => {
@@ -147,6 +151,19 @@ export function useFx() {
       case 'opening_done':
         sound.play('cheers')
         return
+      case 'interlude':
+        sound.play('event')
+        sound.buzz([60, 40, 60])
+        return
+      case 'interlude_end':
+        sound.play('turn')
+        return
+      case 'minigame_loss': {
+        if (fx.amount > 0) floater('mana', fx.target, `-${fx.amount}`)
+        const loser = players.find((p) => p.id === fx.target)
+        if (loser) drinkCall(loser, myId, fx.amount)
+        return
+      }
       case 'winner':
         sound.play('win')
         return
