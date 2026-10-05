@@ -30,6 +30,8 @@ interface StoredSession {
 
 const SESSION_KEY = 'sdd.session'
 const PROFILE_KEY = 'sdd.profile'
+/** How long "create room" / "join room" waits for the server to wake up before giving up. */
+const CONNECT_WAIT_MS = 30_000
 
 /*
  * One shared connection + one shared copy of the room/game state for the whole app.
@@ -106,6 +108,26 @@ export function useRoom() {
     })
   }
 
+  /**
+   * Resolves once the socket is connected (or false after `ms`). Creating or joining a room waits for it,
+   * because a sleeping free-tier server can take up to a minute to accept the first connection.
+   */
+  function whenConnected(ms: number): Promise<boolean> {
+    const s = socket
+    if (!s || s.connected) return Promise.resolve(!!s)
+    return new Promise((resolve) => {
+      const done = () => {
+        clearTimeout(timer)
+        resolve(true)
+      }
+      const timer = setTimeout(() => {
+        s.off('connect', done)
+        resolve(false)
+      }, ms)
+      s.once('connect', done)
+    })
+  }
+
   /** Shows an error toast when a call failed. Returns whether it succeeded. */
   function check(result: Ack): boolean {
     if (!result.ok) notify(errorText(result.error))
@@ -144,6 +166,7 @@ export function useRoom() {
 
   async function createRoom(profile: Profile): Promise<boolean> {
     rememberProfile(profile)
+    await whenConnected(CONNECT_WAIT_MS)
     const result = await call<JoinedRoom>('create_room', { ...profile, adultConfirmed: true })
     if (result.ok) adopt(result)
     return check(result)
@@ -151,6 +174,7 @@ export function useRoom() {
 
   async function joinRoom(code: string, profile: Profile): Promise<boolean> {
     rememberProfile(profile)
+    await whenConnected(CONNECT_WAIT_MS)
     const result = await call<JoinedRoom>('join_room', { ...profile, code, adultConfirmed: true })
     if (result.ok) adopt(result)
     return check(result)
