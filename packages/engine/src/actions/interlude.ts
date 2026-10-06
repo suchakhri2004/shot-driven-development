@@ -1,13 +1,14 @@
 import { GameError } from '../errors'
 import { addLog, emit } from '../log'
 import { nextRandom } from '../rng'
-import { spendMana } from '../resources'
 import type { GameState, InterludeMode, PlayerState } from '../types'
+import { penaltyDrink } from './drink'
 
 /**
- * House rule H3. A coffee break or a mini-game stops the game: nothing else can be played until the
- * card's owner ends it, the host ends it (server side, via timeout) or `config.interludeSec` runs out.
- * The mini-game itself is played for real around the table; the app only shows its rules.
+ * House rule H3. A coffee break, a mini-game or a drink call stops the game: nothing else can be played
+ * until its owner ends it, the host ends it (server side, via timeout) or its time runs out.
+ * Mini-games and drink calls happen for real around the table; the app only shows what to do.
+ * The owner is whoever played the card, or the active player for a drink call (an Incident).
  */
 export function startInterlude(s: GameState, ownerId: string, mode: InterludeMode): void {
   s.pending = {
@@ -17,16 +18,16 @@ export function startInterlude(s: GameState, ownerId: string, mode: InterludeMod
     playerId: ownerId,
     roll: Math.floor(nextRandom(s) * 2 ** 31),
     losers: [],
-    timeoutSec: s.config.interludeSec
+    timeoutSec: mode === 'drinkcall' ? s.config.drinkCallSec : s.config.interludeSec
   }
-  addLog(s, mode === 'pause' ? 'pause_start' : 'minigame_start', { actor: ownerId })
+  addLog(s, `${mode}_start`, { actor: ownerId })
   emit(s, { kind: 'interlude', mode, owner: ownerId })
 }
 
 /** Also used when the timer runs out. */
 export function closeInterlude(s: GameState): void {
   if (s.pending?.kind !== 'interlude') return
-  addLog(s, s.pending.mode === 'pause' ? 'pause_end' : 'minigame_end', { actor: s.pending.playerId })
+  addLog(s, `${s.pending.mode}_end`, { actor: s.pending.playerId })
   s.pending = null
   emit(s, { kind: 'interlude_end' })
 }
@@ -37,14 +38,11 @@ export function endInterlude(s: GameState, player: PlayerState): void {
   closeInterlude(s)
 }
 
-/** "I lost": the player drinks for real and loses up to `miniGamePenalty` Shot Stack (never below 0). */
-export function loseMiniGame(s: GameState, player: PlayerState): void {
+/** "I drank": lost the mini-game (and loses `miniGamePenalty` Shot Stack) or the drink call was about me. */
+export function takeDrink(s: GameState, player: PlayerState): void {
   const pending = s.pending
-  if (pending?.kind !== 'interlude' || pending.mode !== 'minigame') throw new GameError('NO_MINIGAME')
-  if (pending.losers.includes(player.id)) throw new GameError('ALREADY_LOST')
+  if (pending?.kind !== 'interlude' || pending.mode === 'pause') throw new GameError('NO_DRINK_CALL')
+  if (pending.losers.includes(player.id)) throw new GameError('ALREADY_TOOK_DRINK')
   pending.losers.push(player.id)
-  const amount = Math.min(player.mana, s.config.miniGamePenalty)
-  spendMana(s, player, amount)
-  addLog(s, 'minigame_loss', { target: player.id, amount })
-  emit(s, { kind: 'minigame_loss', target: player.id, amount })
+  penaltyDrink(s, player, pending.mode === 'minigame' ? s.config.miniGamePenalty : 0)
 }

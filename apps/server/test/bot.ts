@@ -25,7 +25,7 @@ export function decide(view: GameStatePayload, cards: Record<string, CardDef>, a
   }
   if (pending?.kind === 'interlude') {
     if (pending.playerId === me.id) return { type: 'end_interlude' }
-    return pending.mode === 'minigame' && !pending.losers.includes(me.id) ? { type: 'lose_minigame' } : null
+    return pending.mode !== 'pause' && !pending.losers.includes(me.id) ? { type: 'take_drink' } : null
   }
 
   if (s.phase === 'opening_shot') return me.openingShotDone ? null : { type: 'drink' }

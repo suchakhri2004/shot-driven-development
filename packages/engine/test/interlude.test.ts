@@ -2,7 +2,7 @@ import { DECK, TEST_DECK } from '@sdd/cards'
 import { describe, expect, it } from 'vitest'
 import { createGame, dispatch, SYSTEM_PLAYER } from '../src'
 import type { GameConfig, GameState } from '../src'
-import { act, giveHand, NAMES, play, player, reject, setMana } from './helpers'
+import { act, giveHand, NAMES, play, player, reject, rigNextDraw, setMana } from './helpers'
 
 const HOUSE = DECK.filter((c) => c.house)
 
@@ -31,7 +31,7 @@ describe('coffee break (house rule H3)', () => {
     expect(s.pending).toMatchObject({ kind: 'interlude', mode: 'pause', playerId: 'alice', timeoutSec: 600 })
     expect(reject(s, 'alice', { type: 'finish_turn' })).toBe('DECISION_PENDING')
     expect(reject(s, 'bob', { type: 'end_interlude' })).toBe('NOT_INTERLUDE_OWNER')
-    expect(reject(s, 'bob', { type: 'lose_minigame' })).toBe('NO_MINIGAME')
+    expect(reject(s, 'bob', { type: 'take_drink' })).toBe('NO_DRINK_CALL')
 
     s = act(s, 'alice', { type: 'end_interlude' })
     expect(s.pending).toBeNull()
@@ -63,24 +63,24 @@ describe('mini-game (house rule H3)', () => {
     expect(s.pending?.kind === 'interlude' && Number.isInteger(s.pending.roll)).toBe(true)
 
     s = setMana(setMana(s, 'bob', 5), 'carol', 2)
-    const result = dispatch(s, 'bob', { type: 'lose_minigame' })
-    expect(result.ok && result.fx).toEqual([{ kind: 'minigame_loss', target: 'bob', amount: 3 }])
-    s = act(s, 'bob', { type: 'lose_minigame' })
-    s = act(s, 'carol', { type: 'lose_minigame' })
+    const result = dispatch(s, 'bob', { type: 'take_drink' })
+    expect(result.ok && result.fx).toEqual([{ kind: 'penalty_drink', target: 'bob', amount: 3 }])
+    s = act(s, 'bob', { type: 'take_drink' })
+    s = act(s, 'carol', { type: 'take_drink' })
     expect(player(s, 'bob').mana).toBe(2)
     expect(player(s, 'carol').mana).toBe(0)
-    expect(reject(s, 'bob', { type: 'lose_minigame' })).toBe('ALREADY_LOST')
+    expect(reject(s, 'bob', { type: 'take_drink' })).toBe('ALREADY_TOOK_DRINK')
 
     s = act(s, 'alice', { type: 'end_interlude' })
     expect(s.pending).toBeNull()
-    expect(reject(s, 'carol', { type: 'lose_minigame' })).toBe('NO_MINIGAME')
+    expect(reject(s, 'carol', { type: 'take_drink' })).toBe('NO_DRINK_CALL')
   })
 
   it('returns lost Shot Stack to the bank', () => {
     let s = started(30)
     s = setMana(s, 'bob', 4)
     const before = s.manaBank!
-    s = act(s, 'bob', { type: 'lose_minigame' })
+    s = act(s, 'bob', { type: 'take_drink' })
     expect(s.manaBank).toBe(before + 3)
   })
 })
@@ -94,5 +94,39 @@ describe('switching house cards off', () => {
     expect(all(deck(true)).filter((id) => id === 'coffee-break' || id === 'hackathon')).toHaveLength(6)
     expect(all(deck(false)).some((id) => id === 'coffee-break' || id === 'hackathon')).toBe(false)
     expect(deck(false).defs['hackathon']).toBeUndefined()
+  })
+})
+
+describe('drinking house rules', () => {
+  it('Last Call: whoever it applies to drinks once, gains nothing, and the game resumes after', () => {
+    let s = setMana(rigNextDraw(houseGame(), 'bob', 'last-call'), 'bob', 2)
+    // alice ends her turn, bob draws the Last Call at the start of his
+    s = act(s, 'alice', { type: 'finish_turn' })
+    expect(s.pending).toMatchObject({ kind: 'interlude', mode: 'drinkcall', playerId: 'bob', timeoutSec: 60 })
+    s = act(s, 'carol', { type: 'take_drink' })
+    s = act(s, 'bob', { type: 'take_drink' })
+    expect(player(s, 'bob').mana).toBe(2)
+    expect(player(s, 'carol').potionsDrunk).toBe(1)
+    expect(reject(s, 'carol', { type: 'take_drink' })).toBe('ALREADY_TOOK_DRINK')
+    s = timeout(s)
+    expect(s.pending).toBeNull()
+    expect(s.activeId).toBe('bob')
+  })
+
+  it('git blame: the target drinks and loses 3 Shot Stack', () => {
+    let s = setMana(giveHand(houseGame(), 'alice', ['git-blame']), 'alice', 1)
+    s = setMana(s, 'bob', 5)
+    const result = dispatch(s, 'alice', { type: 'play_card', cardId: s.players[0].hand[0].iid, targets: ['bob'] })
+    expect(result.ok && result.fx.filter((f) => f.kind === 'penalty_drink')).toEqual([{ kind: 'penalty_drink', target: 'bob', amount: 3 }])
+    s = play(s, 'alice', 'git-blame', { targets: ['bob'] })
+    expect(player(s, 'bob').mana).toBe(2)
+    expect(player(s, 'bob').potionsDrunk).toBe(1)
+  })
+
+  it('going out costs 2 real shots (none with knockoutShots 0)', () => {
+    const out = act(houseGame(), 'bob', { type: 'declare_ko' })
+    expect(player(out, 'bob').potionsDrunk).toBe(2)
+    expect(out.log.at(-1)).toMatchObject({ kind: 'eliminated', target: 'bob', amount: 2 })
+    expect(player(act(houseGame({ knockoutShots: 0 }), 'bob', { type: 'declare_ko' }), 'bob').potionsDrunk).toBe(0)
   })
 })

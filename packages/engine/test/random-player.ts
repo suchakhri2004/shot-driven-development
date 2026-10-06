@@ -77,7 +77,7 @@ export function nextRandomMove(s: GameState, rng: { rng: number }, actionsThisTu
   }
   if (pending?.kind === 'interlude') {
     const loser = s.players.find((p) => p.alive && !pending.losers.includes(p.id))
-    if (pending.mode === 'minigame' && loser && chance(rng, 0.4)) return { playerId: loser.id, action: { type: 'lose_minigame' } }
+    if (pending.mode !== 'pause' && loser && chance(rng, 0.4)) return { playerId: loser.id, action: { type: 'take_drink' } }
     return { playerId: pending.playerId, action: { type: 'end_interlude' } }
   }
   if (s.phase === 'opening_shot') {

@@ -2,7 +2,7 @@ import { advance } from './advance'
 import { chooseDiscard, declareKo, declineShortfallAction, passResponse, timeoutPending } from './actions/decisions'
 import { drink } from './actions/drink'
 import { discardCard, exchangeCard } from './actions/hand-actions'
-import { endInterlude, loseMiniGame } from './actions/interlude'
+import { endInterlude, takeDrink } from './actions/interlude'
 import { playCard } from './actions/play-card'
 import { finishTurn } from './actions/turn-actions'
 import { GameError } from './errors'
@@ -34,8 +34,8 @@ function perform(s: GameState, player: PlayerState, action: Exclude<Action, { ty
       return declareKo(s, player)
     case 'end_interlude':
       return endInterlude(s, player)
-    case 'lose_minigame':
-      return loseMiniGame(s, player)
+    case 'take_drink':
+      return takeDrink(s, player)
   }
 }
 

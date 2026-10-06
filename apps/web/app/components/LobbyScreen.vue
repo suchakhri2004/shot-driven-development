@@ -90,6 +90,8 @@ async function leave() {
       </div>
     </section>
 
+    <ModePicker :lobby="lobby" :editable="room.isHost.value" />
+
     <LobbyConfig :lobby="lobby" :editable="room.isHost.value" />
 
     <div class="mt-auto space-y-2 pt-2">

@@ -57,7 +57,7 @@ export function formatLog(entry: LogEntry, { nameOf, cards }: LogContext): { ico
     case 'artifact_destroyed':
       return { icon: 'artifact', text: `${card} ของ ${target} ถูกทำลาย` }
     case 'eliminated':
-      return { icon: 'skull', text: `${target} ${entry.extra === 'ko' ? theme.overflow : theme.crashed}` }
+      return { icon: 'skull', text: `${target} ${entry.extra === 'ko' ? theme.overflow : theme.crashed}${n ? ` ดื่ม ${n} ช็อต` : ''}` }
     case 'reshuffle':
       return { icon: 'rebase', text: 'สับกอง /dev/null กลับมาเป็น Backlog' }
     case 'winner':
@@ -70,8 +70,12 @@ export function formatLog(entry: LogEntry, { nameOf, cards }: LogContext): { ico
       return { icon: 'hackathon', text: `${actor} เปิดมินิเกม` }
     case 'minigame_end':
       return { icon: 'play', text: 'จบมินิเกม เล่นต่อ' }
-    case 'minigame_loss':
-      return { icon: 'drink', text: `${target} แพ้มินิเกม ดื่ม 1 ช็อต เสีย ${n} ${theme.mana.name}` }
+    case 'penalty_drink':
+      return { icon: 'drink', text: `${target} ดื่ม 1 ช็อต${n ? ` เสีย ${n} ${theme.mana.name}` : ''}` }
+    case 'drinkcall_start':
+      return { icon: 'last-call', text: 'Last Call! สุ่มคำสั่งดื่ม' }
+    case 'drinkcall_end':
+      return { icon: 'play', text: 'เล่นต่อ' }
     default:
       return { icon: 'sparkles', text: entry.kind }
   }

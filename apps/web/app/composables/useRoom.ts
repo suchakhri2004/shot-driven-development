@@ -202,6 +202,7 @@ export function useRoom() {
   const kick = (playerId: string) => call('kick_player', { playerId }).then(check)
   const reorder = (order: string[]) => call('reorder_seats', { order }).then(check)
   const updateConfig = (config: UpdateConfigPayload['config']) => call('update_config', { config }).then(check)
+  const setMode = (mode: LobbyView['mode']) => call('update_config', { mode }).then(check)
   const updateProfile = (patch: Partial<Profile>) => call('update_profile', patch).then(check)
   const startGame = () => call('start_game').then(check)
   const playAgain = () => call('play_again').then(check)
@@ -238,7 +239,7 @@ export function useRoom() {
     // connection
     init, createRoom, joinRoom, reconnect, leave, savedProfile, notify,
     // commands
-    setReady, kick, reorder, updateConfig, updateProfile, startGame, playAgain, send,
+    setReady, kick, reorder, updateConfig, setMode, updateProfile, startGame, playAgain, send,
     // helpers
     nameOf, msLeft
   }

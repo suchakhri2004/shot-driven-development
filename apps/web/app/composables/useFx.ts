@@ -21,7 +21,7 @@ export interface Banner {
 
 /**
  * "X drank" notice shown to the whole table, so nobody can press drink without actually drinking.
- * `lost` = they lost a mini-game: they drink for real and lose that much Shot Stack.
+ * `lost` = a penalty shot (mini-game, drink call, git blame): Shot Stack it cost them, if any.
  */
 export interface DrinkCall {
   id: number
@@ -158,7 +158,7 @@ export function useFx() {
       case 'interlude_end':
         sound.play('turn')
         return
-      case 'minigame_loss': {
+      case 'penalty_drink': {
         if (fx.amount > 0) floater('mana', fx.target, `-${fx.amount}`)
         const loser = players.find((p) => p.id === fx.target)
         if (loser) drinkCall(loser, myId, fx.amount)

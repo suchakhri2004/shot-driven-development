@@ -12,8 +12,10 @@ export function eliminate(s: GameState, player: PlayerState, by: 'hp' | 'ko'): v
   player.statuses = []
   if (s.manaBank !== null) s.manaBank += player.mana
   player.mana = 0
+  // house rule H4: going out costs real shots (counted, nothing gained)
+  player.potionsDrunk += s.config.knockoutShots
   s.eliminationOrder.push({ playerId: player.id, turn: s.turnNumber, by })
-  addLog(s, 'eliminated', { target: player.id, extra: by })
+  addLog(s, 'eliminated', { target: player.id, extra: by, amount: s.config.knockoutShots })
   emit(s, { kind: 'eliminated', target: player.id, by })
   dropPendingFor(s, player)
 }

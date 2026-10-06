@@ -43,14 +43,8 @@ const defOf = (id?: string) => (id ? room.cards.value[id] : undefined)
       <div class="drink-call">
         <PlayerAvatar :avatar="d.avatar" :size="48" />
         <div class="flex min-w-0 flex-col items-start gap-1">
-          <template v-if="d.lost !== undefined">
-            <span class="stamp red anim-stamp">แพ้! {{ d.sober ? 'ซดน้ำ' : 'ซด' }}</span>
-            <span class="tag">{{ d.name }} · {{ theme.mana.name }} -{{ d.lost }}</span>
-          </template>
-          <template v-else>
-            <span class="stamp red anim-stamp">{{ d.sober ? 'ซดน้ำ!' : 'ซด!' }}</span>
-            <span class="tag">{{ d.name }} · ช็อตที่ {{ d.shot }}</span>
-          </template>
+          <span class="stamp red anim-stamp">{{ d.sober ? 'ซดน้ำ!' : 'ซด!' }}</span>
+          <span class="tag">{{ d.name }} · ช็อตที่ {{ d.shot }}<template v-if="d.lost"> · {{ theme.mana.name }} -{{ d.lost }}</template></span>
         </div>
       </div>
     </div>
@@ -80,6 +74,7 @@ const defOf = (id?: string) => (id ? room.cards.value[id] : undefined)
         <div class="flex flex-col items-center gap-3">
           <span class="stamp red big anim-stamp">{{ b.by === 'ko' ? theme.overflow : theme.crashed }}</span>
           <span class="tag"><GameIcon name="skull" tone="ink" /> {{ room.nameOf(b.playerId) }}</span>
+          <span v-if="room.state.value?.config.knockoutShots" class="stamp red">ดื่ม {{ room.state.value.config.knockoutShots }} ช็อต</span>
         </div>
       </div>
     </template>

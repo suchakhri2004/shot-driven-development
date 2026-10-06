@@ -41,7 +41,7 @@ npm run play # build เว็บ + เปิดเกมที่ http://localh
 
 | | |
 |---|---|
-| พร้อมเล่น | กติกาครบ (R1–R19 + ช็อตเปิดเกม), ห้อง/lobby/QR, เล่นจนจบเกม 2–6 คน (2 คน = โหมดดวล), การ์ดพิเศษพักเกม/มินิเกม (ปิดได้), กลับเข้าห้องเดิมได้, หน้าจอมือถือ, เสียง/เพลง |
+| พร้อมเล่น | กติกาครบ (R1–R19 + ช็อตเปิดเกม), ห้อง/lobby/QR, เล่นจนจบเกม 2–6 คน (2 คน = โหมดดวล), 5 โหมดความโหด พร้อมการ์ดดื่ม/พักเกม/มินิเกม และกองที่ปรับตามจำนวนคน, กลับเข้าห้องเดิมได้, หน้าจอมือถือ, เสียง/เพลง |
 | การ์ด | **ชุดเล่นจริง 90 ใบ (`packages/cards/src/deck.ts`) ที่ออกแบบขึ้นเอง** ตามโครงสร้างของเกมต้นฉบับ (โจมตี 3 ธาตุ, ป้องกัน, ซัพพอร์ต, คำสาป, Artifact, Incident) **ไม่ใช่การ์ดที่พิมพ์ในกล่องจริง** ถ้าได้รายการการ์ดจริงมา แทนที่ไฟล์นี้ไฟล์เดียว |
 | ยังไม่มี | Anti-Joker (ไม่ทราบข้อความการ์ดจริง), เก็บห้องลง Redis/Postgres (restart server = เกมหาย), บอท, ทดสอบบน iOS Safari / Android จริง |
 
@@ -101,7 +101,7 @@ docs/ ARCHITECTURE.md, RULES-MAPPING.md
 
 ```ts
 {
-  id: 'null-pointer', name: 'Null Pointer', description: 'ทำ 3 damage ใส่ 1 คน',
+  id: 'null-pointer', name: 'Null Pointer', description: 'ตี 3',
   type: 'offensive', element: 'hotfix',
   cost: { mana: 2 }, // เพิ่ม discard: [{ count: 1, element: 'hotfix' }] ถ้าต้องทิ้งการ์ดด้วย
   target: 'one-opponent',
@@ -111,7 +111,9 @@ docs/ ARCHITECTURE.md, RULES-MAPPING.md
 }
 ```
 
-effect ที่มี: `damage` `heal` `gainMana` `loseMana` `draw` `discard` `status` `swapHands` `counter` `destroyArtifact` · แก้การ์ดแล้วรัน `npm test` (มี test ตรวจความสมบูรณ์ของชุดการ์ด) · ไอคอนบนการ์ดอยู่ที่ `apps/web/app/theme/theme.ts`
+effect ที่มี: `damage` `heal` `gainMana` `loseMana` `draw` `discard` `status` `swapHands` `counter` `destroyArtifact` `interlude` `penaltyDrink` · คำอธิบายบนการ์ดเขียนสั้นแบบ "ตี 3" "ฟื้น 2" "จั่ว 1" "(3 เทิร์น)" · แก้การ์ดแล้วรัน `npm test` (มี test ตรวจความสมบูรณ์ของชุดการ์ด) · ไอคอนบนการ์ดอยู่ที่ `scripts/build-icons.mjs`
+
+**โหมดและขนาดกอง:** โหมด (คลาสสิก → โหดสุด) อยู่ใน `packages/cards/src/modes.ts` แต่ละโหมดกำหนดจำนวนการ์ดดื่มและค่าบางอย่าง ขนาดกองตามจำนวนผู้เล่นมาจาก `packages/cards/src/deck-plan.ts` ซึ่งสร้างด้วย `npx tsx scripts/analyze-deck.ts` (บอทเล่นจำลองแล้ววัดว่าเกมหนึ่งใช้การ์ดกี่ใบ) แก้การ์ดหรือโหมดเมื่อไหร่ให้รันใหม่ · คำสั่งดื่มอยู่ที่ `drink-calls.ts` มินิเกมอยู่ที่ `mini-games.ts`
 
 ## ตั้งค่า
 

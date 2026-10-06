@@ -1,3 +1,4 @@
+import { penaltyDrink } from './actions/drink'
 import { startInterlude } from './actions/interlude'
 import { drawCard } from './deck'
 import { addLog, emit } from './log'
@@ -37,8 +38,9 @@ export function runStep(s: GameState, step: Step): void {
     case 'destroyArtifact':
       return destroyArtifact(s, ctx)
     case 'interlude':
-      if (ctx.sourceId) startInterlude(s, ctx.sourceId, effect.mode)
-      return
+      return startInterlude(s, ctx.sourceId ?? s.activeId, effect.mode)
+    case 'penaltyDrink':
+      return penaltyDrink(s, target!, effect.manaLoss)
   }
 }
 

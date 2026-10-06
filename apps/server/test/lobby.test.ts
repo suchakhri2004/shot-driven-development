@@ -1,4 +1,4 @@
-import { DUEL_HP } from '@sdd/protocol'
+import { DUEL_HP } from '@sdd/cards'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { startTestServer, seatPlayers, TestClient } from './helpers'
 

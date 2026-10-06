@@ -23,6 +23,12 @@ const sections = [
 ]
 
 const rebase = [1, 2, 3, 4]
+const houseCards = [
+  { id: 'git-blame', title: 'บังคับดื่ม', text: 'เลือก 1 คน ดื่ม 1 ช็อต และเสีย Shot Stack 3' },
+  { id: 'last-call', title: 'Incident ดื่ม', text: 'จั่วได้ปุ๊บ สุ่มคำสั่ง เช่น คนใส่เสื้อดำดื่ม ใครโดนกด "ฉันโดน"' },
+  { id: 'hackathon', title: 'มินิเกม', text: 'เล่นกันจริงในวง ใครแพ้กด "ฉันแพ้" ดื่ม 1 ช็อต เสีย Shot Stack 3' },
+  { id: 'coffee-break', title: 'พักเกม 10 นาที', text: 'คนเล่นการ์ดหรือเจ้าของห้องกดเลิกพักก่อนได้' }
+]
 const cardTypes = [
   { id: 'null-pointer', title: 'โจมตี', text: 'ทำให้คนอื่นเสีย Uptime' },
   { id: 'try-catch', title: 'ป้องกัน', text: 'ใช้ตอบโต้ตอนถูกโจมตี' },
@@ -189,6 +195,12 @@ function jump(id: string) {
         <span class="chip border-deploy/60 text-deploy"><GameIcon name="deploy" /> Deploy</span><br />
         ธาตุสำคัญเวลาการ์ดบอกให้ "ทิ้งการ์ดธาตุเดียวกัน" เป็นค่าใช้จ่าย
       </div>
+      <div class="grid grid-cols-2 gap-2 rounded-xl bg-panel2 p-3 text-xs">
+        <span><b class="text-neon">ตี 3</b> = เป้าหมาย {{ theme.hp.name }} -3</span>
+        <span><b class="text-neon">ฟื้น 3</b> = {{ theme.hp.name }} +3</span>
+        <span><b class="text-neon">จั่ว 1</b> = จั่วการ์ด 1 ใบ</span>
+        <span><b class="text-neon">(3 เทิร์น)</b> = มีผล 3 เทิร์น</span>
+      </div>
     </section>
 
     <!-- 7. defending -->
@@ -259,16 +271,16 @@ function jump(id: string) {
     <!-- 10. house cards -->
     <section id="howto-house" class="panel space-y-3 p-4">
       <h2 class="font-display text-xl font-bold text-neon"><GameIcon name="hackathon" /> การ์ดพิเศษ (กติกาบ้าน)</h2>
-      <p class="text-xs text-dim">ไม่มีในเกมต้นฉบับ เจ้าของห้องปิดได้ในตั้งค่าห้อง</p>
+      <p class="text-xs text-dim">ไม่มีในเกมต้นฉบับ เจ้าของห้องเลือกโหมดในล็อบบี้ ยิ่งโหมดโหด การ์ดดื่มยิ่งเยอะ ถ้าเลือก "คลาสสิก" จะไม่มีเลย</p>
       <div class="grid grid-cols-2 gap-3">
-        <div class="flex flex-col items-center gap-2 text-center">
-          <GameCard :def="card('coffee-break')" size="sm" />
-          <span class="text-xs"><b>พักเกม 10 นาที</b> คนเล่นการ์ดหรือเจ้าของห้องกดเลิกพักก่อนได้</span>
+        <div v-for="h in houseCards" :key="h.id" class="flex flex-col items-center gap-2 text-center">
+          <GameCard :def="card(h.id)" size="sm" />
+          <span class="text-xs"><b>{{ h.title }}</b> {{ h.text }}</span>
         </div>
-        <div class="flex flex-col items-center gap-2 text-center">
-          <GameCard :def="card('hackathon')" size="sm" />
-          <span class="text-xs"><b>สุ่มมินิเกม</b> เล่นกันจริงในวง ใครแพ้กด "ฉันแพ้" ดื่ม 1 ช็อต เสีย {{ theme.mana.name }} 3</span>
-        </div>
+      </div>
+      <div class="flex gap-3 rounded-xl bg-panel2 p-3 text-sm">
+        <span class="text-2xl"><GameIcon name="skull" /></span>
+        <span><b>ตกรอบต้องดื่ม 2 ช็อต</b> ไม่ว่าจะ {{ theme.crashed }} หรือ {{ theme.overflow }}</span>
       </div>
     </section>
     <p class="px-2 text-center text-[10px] text-dim/70">{{ ICON_CREDIT }}</p>

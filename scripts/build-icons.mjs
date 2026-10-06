@@ -109,6 +109,8 @@ const ICONS = {
   // house-rule cards (H3)
   'coffee-break': 'coffee-mug',
   hackathon: 'rolling-dices',
+  'git-blame': 'pointing',
+  'last-call': 'beer-bottle',
   pause: 'hourglass'
 }
 

@@ -1,8 +1,9 @@
 import { randomBytes, randomInt, randomUUID } from 'node:crypto'
 import { DEFAULT_CONFIG } from '@sdd/engine'
 import type { GameConfig } from '@sdd/engine'
-import { DECK } from '@sdd/cards'
-import { DUEL_HP, DUEL_PLAYERS, MAX_PLAYERS, MIN_PLAYERS } from '@sdd/protocol'
+import { buildDeck, DECK, DEFAULT_MODE, DUEL_HP, DUEL_PLAYERS, tableConfig } from '@sdd/cards'
+import type { GameMode } from '@sdd/cards'
+import { MAX_PLAYERS, MIN_PLAYERS } from '@sdd/protocol'
 import type {
   Ack,
   ClientAction,
@@ -52,6 +53,7 @@ export class Room {
   phase: RoomPhase = 'lobby'
   hostId = ''
   config: GameConfig = { ...DEFAULT_CONFIG }
+  mode: GameMode = DEFAULT_MODE
   game: GameSession | null = null
   lastActiveAt = Date.now()
 
@@ -178,6 +180,7 @@ export class Room {
     this.assertHost(hostId)
     this.assertLobby()
     this.config = { ...this.config, ...payload.config }
+    if (payload.mode) this.mode = payload.mode
     this.broadcastLobby()
   }
 
@@ -194,8 +197,8 @@ export class Room {
     this.game = new GameSession(
       {
         players: members.map((m) => ({ id: m.id, name: m.name, avatar: m.avatar, nonAlcoholic: m.nonAlcoholic })),
-        cards: DECK,
-        config: members.length === DUEL_PLAYERS ? { ...this.config, startHp: DUEL_HP, maxHp: DUEL_HP } : this.config,
+        cards: buildDeck(this.mode, members.length),
+        config: tableConfig(this.mode, members.length, this.config),
         firstPlayerId: this.pickFirstPlayer(members),
         seed: randomUUID()
       },
@@ -264,7 +267,8 @@ export class Room {
       config: this.config,
       minPlayers: MIN_PLAYERS,
       maxPlayers: MAX_PLAYERS,
-      duel: { players: DUEL_PLAYERS, hp: DUEL_HP }
+      duel: { players: DUEL_PLAYERS, hp: DUEL_HP },
+      mode: this.mode
     }
   }
 

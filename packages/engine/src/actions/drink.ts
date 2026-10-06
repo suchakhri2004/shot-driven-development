@@ -2,7 +2,7 @@ import { eliminate } from '../elimination'
 import { GameError } from '../errors'
 import { addLog, emit } from '../log'
 import { alivePlayers } from '../lookup'
-import { canDrink, giveMana } from '../resources'
+import { canDrink, giveMana, spendMana } from '../resources'
 import { settleShortfall } from '../shortfall'
 import { getStat } from '../stats'
 import type { GameState, PlayerState } from '../types'
@@ -26,6 +26,19 @@ export function drink(s: GameState, player: PlayerState): void {
     player.openingShotDone = true
     startFirstTurnWhenReady(s)
   }
+  enforcePotionLimit(s, player)
+}
+
+/**
+ * House rules: a shot someone is made to take (lost a mini-game, a drink call, git blame).
+ * It counts as a drink but gives no Shot Stack; instead the player loses up to `manaLoss`, back to the bank.
+ */
+export function penaltyDrink(s: GameState, player: PlayerState, manaLoss: number): void {
+  const amount = Math.min(player.mana, manaLoss)
+  spendMana(s, player, amount)
+  player.potionsDrunk += 1
+  addLog(s, 'penalty_drink', { target: player.id, amount })
+  emit(s, { kind: 'penalty_drink', target: player.id, amount })
   enforcePotionLimit(s, player)
 }
 

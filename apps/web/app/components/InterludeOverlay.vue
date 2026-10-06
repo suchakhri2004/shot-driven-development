@@ -1,16 +1,45 @@
 <script setup lang="ts">
-import { MINI_GAMES } from '@sdd/cards'
+import { DRINK_CALLS, MINI_GAMES } from '@sdd/cards'
 import { theme } from '~/theme/theme'
 
-/** House rule H3: the whole table sees the coffee break countdown or the mini-game rules. */
+/** House rule H3: the whole table sees the coffee break countdown, the mini-game rules or the drink call. */
 const room = useRoom()
 const lock = useLock()
 const now = useNow()
 
 const state = computed(() => room.state.value!)
 const interlude = computed(() => (state.value.pending?.kind === 'interlude' ? state.value.pending : null))
-const game = computed(() => (interlude.value ? MINI_GAMES[interlude.value.roll % MINI_GAMES.length] : null))
 const ownerName = computed(() => room.nameOf(interlude.value?.playerId))
+/** What a mini-game or a drink call shows: the same screen, different words. */
+const call = computed(() => {
+  const i = interlude.value
+  if (!i || i.mode === 'pause') return null
+  if (i.mode === 'minigame') {
+    const game = MINI_GAMES[i.roll % MINI_GAMES.length]
+    return {
+      stamp: 'MINI GAME',
+      icon: 'hackathon',
+      source: `${ownerName.value} เปิด Hackathon`,
+      title: game.title,
+      text: game.rules,
+      hint: `ใครแพ้ ดื่ม 1 ช็อตจริง แล้วกดปุ่มด้านล่าง (เสีย ${state.value.config.miniGamePenalty} ${theme.mana.name})`,
+      button: 'ฉันแพ้',
+      done: 'แพ้',
+      end: 'จบมินิเกม เล่นต่อ'
+    }
+  }
+  return {
+    stamp: 'LAST CALL',
+    icon: 'last-call',
+    source: 'Incident',
+    title: 'ใครโดนบ้าง?',
+    text: DRINK_CALLS[i.roll % DRINK_CALLS.length].text,
+    hint: 'ใครเข้าข่าย ดื่ม 1 ช็อตจริง แล้วกดปุ่มด้านล่าง',
+    button: 'ฉันโดน ดื่มแล้ว',
+    done: 'ดื่มแล้ว',
+    end: 'ไปต่อ'
+  }
+})
 const canEnd = computed(() => interlude.value?.playerId === state.value.me || room.isHost.value)
 const iLost = computed(() => !!interlude.value?.losers.includes(state.value.me))
 const amAlive = computed(() => !!room.me.value?.alive)
@@ -21,7 +50,7 @@ const clock = computed(() => {
 })
 
 const end = () => lock.run(() => room.send({ type: 'end_interlude' }))
-const lose = () => lock.run(() => room.send({ type: 'lose_minigame' }))
+const lose = () => lock.run(() => room.send({ type: 'take_drink' }))
 </script>
 
 <template>
@@ -41,31 +70,29 @@ const lose = () => lock.run(() => room.send({ type: 'lose_minigame' }))
       <p v-else class="text-sm text-dim">รอ {{ ownerName }} หรือเจ้าของห้องกดเลิกพัก</p>
     </template>
 
-    <!-- mini-game: rules only, the table plays it for real -->
-    <template v-else-if="game">
+    <!-- mini-game or drink call: the app only says what to do, the table does it for real -->
+    <template v-else-if="call">
       <div>
-        <span class="stamp">MINI GAME</span>
-        <p class="mt-2 text-xs text-dim">{{ ownerName }} เปิด Hackathon · ปิดเองใน {{ clock }}</p>
+        <span class="stamp">{{ call.stamp }}</span>
+        <p class="mt-2 text-xs text-dim">{{ call.source }} · ปิดเองใน {{ clock }}</p>
       </div>
       <div class="rules-card">
-        <GameIcon name="hackathon" variant="print" plate="#e3242b" size="2.6rem" />
-        <h2 class="font-display text-2xl font-bold">{{ game.title }}</h2>
-        <p class="text-base leading-relaxed">{{ game.rules }}</p>
+        <GameIcon :name="call.icon" variant="print" plate="#e3242b" size="2.6rem" />
+        <h2 class="font-display text-2xl font-bold">{{ call.title }}</h2>
+        <p class="text-lg leading-relaxed">{{ call.text }}</p>
       </div>
-      <p class="text-sm">
-        ใครแพ้ <b class="text-neon">ดื่ม 1 ช็อตจริง</b> แล้วกดปุ่มด้านล่าง <span class="whitespace-nowrap">(เสีย {{ state.config.miniGamePenalty }} {{ theme.mana.name }})</span>
-      </p>
+      <p class="text-sm">{{ call.hint }}</p>
 
       <div v-if="interlude.losers.length" class="flex flex-wrap justify-center gap-2">
-        <span v-for="id in interlude.losers" :key="id" class="tag">{{ room.nameOf(id) }} แพ้</span>
+        <span v-for="id in interlude.losers" :key="id" class="tag">{{ room.nameOf(id) }} {{ call.done }}</span>
       </div>
 
       <div class="flex w-full max-w-xs flex-col gap-2">
         <button v-if="amAlive" class="btn btn-amber h-14 text-lg" :disabled="iLost || lock.busy.value" @click="lose">
-          <GameIcon name="drink" tone="paper" /> {{ iLost ? 'ดื่มแล้ว' : 'ฉันแพ้' }}
+          <GameIcon name="drink" tone="paper" /> {{ iLost ? 'ดื่มแล้ว' : call.button }}
         </button>
-        <button v-if="canEnd" class="btn h-12" :disabled="lock.busy.value" @click="end">จบมินิเกม เล่นต่อ</button>
-        <p v-else class="text-xs text-dim">{{ ownerName }} หรือเจ้าของห้องกดจบมินิเกม</p>
+        <button v-if="canEnd" class="btn h-12" :disabled="lock.busy.value" @click="end">{{ call.end }}</button>
+        <p v-else class="text-xs text-dim">{{ ownerName }} หรือเจ้าของห้องกด{{ call.end }}</p>
       </div>
     </template>
   </div>

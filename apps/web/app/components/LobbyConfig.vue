@@ -34,20 +34,6 @@ const set = (patch: Parameters<typeof room.updateConfig>[0]) => room.updateConfi
 
       <label class="flex items-center justify-between gap-3">
         <span>
-          <b>การ์ดพิเศษ</b> Coffee Break + Hackathon
-          <span class="block text-xs text-dim">พักเกม 10 นาที และมินิเกมเล่นกันในวง (กติกาบ้าน ปิดเพื่อเล่นตามต้นฉบับ)</span>
-        </span>
-        <input
-          type="checkbox"
-          class="h-6 w-6 accent-[#f2e8dc]"
-          :checked="config.houseCards"
-          :disabled="!editable"
-          @change="set({ houseCards: ($event.target as HTMLInputElement).checked })"
-        />
-      </label>
-
-      <label class="flex items-center justify-between gap-3">
-        <span>
           เวลาตอบโต้ (วินาที)
           <span class="block text-xs text-dim">หน้าต่างให้เล่นการ์ด Defend ตอนถูกโจมตี</span>
         </span>

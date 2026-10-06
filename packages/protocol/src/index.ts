@@ -3,9 +3,7 @@ import { z } from 'zod'
 
 export const MIN_PLAYERS = 2
 export const MAX_PLAYERS = 6
-/** Duel mode (house rule H2): a 2-player game starts with less Uptime so it stays short. */
-export const DUEL_PLAYERS = 2
-export const DUEL_HP = 6
+export const GAME_MODES = ['classic', 'party', 'rush', 'heavy', 'hardcore'] as const
 export const ROOM_CODE_LENGTH = 6
 
 /* ───────────────────────── Client → Server payloads (validated on the server) ───────────────────────── */
@@ -40,11 +38,13 @@ export const updateConfigSchema = z.object({
       responseWindowSec: seconds,
       shortfallSec: seconds,
       discardChoiceSec: seconds,
-      responderScope: z.enum(['targeted', 'all']),
-      houseCards: z.boolean()
+      responderScope: z.enum(['targeted', 'all'])
     })
     .partial()
     .strict()
+    .optional(),
+  /** Table mode (see @sdd/cards modes): how hard the table drinks. */
+  mode: z.enum(GAME_MODES).optional()
 })
 
 const cardId = z.string().min(1).max(32)
@@ -67,7 +67,7 @@ export const actionSchema = z.discriminatedUnion('type', [
   z.object({ type: z.literal('declare_ko') }),
   /** The card's owner ends a break or mini-game early. The host may too (handled by the room). */
   z.object({ type: z.literal('end_interlude') }),
-  z.object({ type: z.literal('lose_minigame') })
+  z.object({ type: z.literal('take_drink') })
 ])
 export const gameActionSchema = z.object({ actionId: z.string().min(8).max(64), action: actionSchema })
 
@@ -103,6 +103,7 @@ export interface LobbyView {
   maxPlayers: number
   /** With exactly `players` in the room the game is a duel that starts at `hp` Uptime. */
   duel: { players: number; hp: number }
+  mode: (typeof GAME_MODES)[number]
 }
 
 export interface GameStatePayload {

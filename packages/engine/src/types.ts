@@ -25,8 +25,11 @@ export interface StatusDef {
   skipTurn?: boolean
 }
 
-/** House rule H3: a card can stop the game for a coffee break or a real-life mini-game. */
-export type InterludeMode = 'pause' | 'minigame'
+/**
+ * House rule H3: a card can stop the game for a coffee break, a real-life mini-game, or a drink call
+ * (an Incident that tells some of the table to drink, e.g. "everyone wearing black").
+ */
+export type InterludeMode = 'pause' | 'minigame' | 'drinkcall'
 
 export type Effect =
   | { kind: 'damage'; amount: number; to: EffectTarget }
@@ -40,6 +43,8 @@ export type Effect =
   | { kind: 'counter' }
   | { kind: 'destroyArtifact' }
   | { kind: 'interlude'; mode: InterludeMode }
+  /** A real shot that gives no Shot Stack; the target also loses up to `manaLoss` Shot Stack. */
+  | { kind: 'penaltyDrink'; manaLoss: number; to: EffectTarget }
 
 export interface DiscardCost {
   count: number
@@ -105,8 +110,12 @@ export interface GameConfig {
   houseCards: boolean
   /** How long a coffee break or a mini-game may last before the game resumes by itself. */
   interludeSec: number
+  /** How long a drink call stays on screen before the game resumes by itself. */
+  drinkCallSec: number
   /** Shot Stack lost by each player who presses "I lost" in a mini-game (they also drink for real). */
   miniGamePenalty: number
+  /** House rule H4: real shots a player drinks when they go out (0 = original rules). */
+  knockoutShots: number
 }
 
 export const DEFAULT_CONFIG: GameConfig = {
@@ -125,7 +134,9 @@ export const DEFAULT_CONFIG: GameConfig = {
   responderScope: 'targeted',
   houseCards: true,
   interludeSec: 600,
-  miniGamePenalty: 3
+  drinkCallSec: 60,
+  miniGamePenalty: 3,
+  knockoutShots: 2
 }
 
 export interface PlayerInit {
@@ -187,7 +198,7 @@ export type Pending =
   | { id: number; kind: 'discard'; playerId: string; count: number; timeoutSec: number }
   /**
    * The game is stopped for a break or a mini-game. `playerId` played the card and may end it early.
-   * `roll` picks the mini-game from the list on the client; `losers` pressed "I lost" (once each).
+   * `roll` picks the mini-game or drink call from the lists on the client; `losers` pressed "I drank" (once each).
    */
   | {
       id: number
@@ -226,7 +237,8 @@ export type Fx =
   | { kind: 'winner'; player: string | null }
   | { kind: 'interlude'; mode: InterludeMode; owner: string }
   | { kind: 'interlude_end' }
-  | { kind: 'minigame_loss'; target: string; amount: number }
+  /** A real shot taken as a penalty (mini-game, drink call, git blame): no Shot Stack gained, `amount` lost. */
+  | { kind: 'penalty_drink'; target: string; amount: number }
 
 export interface EliminationRecord {
   playerId: string
@@ -273,7 +285,7 @@ export type Action =
   | { type: 'choose_discard'; cardIds: string[] }
   | { type: 'declare_ko' }
   | { type: 'end_interlude' }
-  | { type: 'lose_minigame' }
+  | { type: 'take_drink' }
   | { type: 'timeout'; pendingId: number }
 
 export type DispatchResult =
