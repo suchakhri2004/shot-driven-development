@@ -54,13 +54,13 @@ describe('creating and joining rooms', () => {
     expect(await c.emit('create_room', 'not an object')).toMatchObject({ ok: false, error: 'BAD_REQUEST' })
   })
 
-  it('stops at 6 players', async () => {
-    const { code } = await seatPlayers(server.url, 6).then((r) => {
+  it('stops at 10 players', async () => {
+    const { code } = await seatPlayers(server.url, 10).then((r) => {
       clients.push(...r.clients)
       return r
     })
-    const seventh = await connect()
-    expect(await seventh.join(code, 'Gina')).toMatchObject({ ok: false, error: 'ROOM_FULL' })
+    const eleventh = await connect()
+    expect(await eleventh.join(code, 'Kim')).toMatchObject({ ok: false, error: 'ROOM_FULL' })
   })
 })
 

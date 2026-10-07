@@ -65,7 +65,7 @@ function jump(id: string) {
         <div class="rounded-xl border border-danger/50 bg-danger/10 p-3"><div class="text-2xl"><GameIcon name="attack" /></div><b>{{ theme.crashed }}</b><div class="text-xs text-dim">{{ theme.hp.name }} เหลือ 0</div></div>
         <div class="rounded-xl border border-amber/50 bg-amber/10 p-3"><div class="text-2xl"><GameIcon name="skull" /></div><b>{{ theme.overflow }}</b><div class="text-xs text-dim">ซดเยอะจนไปต่อไม่ไหว</div></div>
       </div>
-      <p class="text-xs text-dim">เล่นได้ 2–6 คน ถ้ามี 2 คนจะเป็น <b class="text-ink">โหมดดวล 1v1</b>: {{ theme.hp.name }} เริ่มที่ 6 เกมจบไวขึ้น กติกาอื่นเหมือนเดิม</p>
+      <p class="text-xs text-dim">เล่นได้ 2–10 คน ถ้ามี 2 คนจะเป็น <b class="text-ink">โหมดดวล 1v1</b>: {{ theme.hp.name }} เริ่มที่ 6 เกมจบไวขึ้น กติกาอื่นเหมือนเดิม</p>
     </section>
 
     <!-- 2. basics -->

@@ -72,11 +72,34 @@ const hint = computed(() => {
       </span>
     </div>
 
-    <div class="relative z-10 font-mono text-[11px] text-dim">เทิร์น {{ state.turnNumber }}</div>
+    <RecentFeed />
+
+    <div class="turn-no relative z-10 font-mono text-[11px] text-dim">เทิร์น {{ state.turnNumber }}</div>
   </section>
 </template>
 
 <style scoped>
+/*
+ * The table shrinks on big tables (two rows of opponents) and on your turn (big hand). It measures
+ * its own height and drops the least useful lines first so nothing spills over the seats.
+ */
+.tabletop {
+  container-type: size;
+  overflow: hidden;
+}
+@container (max-height: 190px) {
+  .hint {
+    display: none;
+  }
+  .tabletop :deep(.feed li:not(:first-child)) {
+    display: none;
+  }
+}
+@container (max-height: 120px) {
+  .turn-no {
+    display: none;
+  }
+}
 /* a card table: green baize inside a wooden rail with a dark outer edge */
 .felt {
   position: absolute;

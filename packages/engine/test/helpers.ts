@@ -2,7 +2,7 @@ import { TEST_DECK } from '@sdd/cards'
 import { createGame, dispatch } from '../src'
 import type { Action, GameConfig, GameState } from '../src'
 
-export const NAMES = ['alice', 'bob', 'carol', 'dave', 'erin', 'frank']
+export const NAMES = ['alice', 'bob', 'carol', 'dave', 'erin', 'frank', 'gina', 'hank', 'ivy', 'jack']
 
 interface NewGameOptions {
   players?: number

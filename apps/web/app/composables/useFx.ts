@@ -34,6 +34,9 @@ export interface DrinkCall {
 
 const DRINK_CALL_MS = 1500
 
+/** How long each big banner stays (ms). Long enough to read across a table; a tap closes it sooner. */
+export const BANNER_MS = { play: 3000, counter: 2500, event: 5000, eliminated: 3500, turn: 1400 }
+
 const floaters = ref<Floater[]>([])
 const banners = ref<Banner[]>([])
 const drinkCalls = ref<DrinkCall[]>([])
@@ -59,10 +62,15 @@ export function useFx() {
     removeLater(floaters, item, 1300)
   }
 
-  function banner(data: Omit<Banner, 'id'>, ms = 1900) {
+  function banner(data: Omit<Banner, 'id'>) {
     const item = { id: nextId++, ...data }
     banners.value = [...banners.value.slice(-2), item]
-    removeLater(banners, item, ms)
+    removeLater(banners, item, BANNER_MS[data.kind as keyof typeof BANNER_MS] ?? BANNER_MS.play)
+  }
+
+  /** A tap on a banner closes it early. */
+  function dismiss(id: number) {
+    banners.value = banners.value.filter((b) => b.id !== id)
   }
 
   /** Drink notices play one after another (the opening shot can bring several at once). */
@@ -127,24 +135,24 @@ export function useFx() {
         sound.play('cast')
         return
       case 'counter':
-        banner({ kind: 'counter', playerId: fx.owner, defId: fx.defId }, 1500)
+        banner({ kind: 'counter', playerId: fx.owner, defId: fx.defId })
         burstAtPlayer(fx.owner, 'guard')
         sound.play('counter')
         return
       case 'event':
-        banner({ kind: 'event', defId: fx.defId }, 2600)
+        banner({ kind: 'event', defId: fx.defId })
         sound.play('event')
         sound.buzz([80, 60, 80])
         return
       case 'turn':
         if (fx.player === myId) {
-          banner({ kind: 'turn', playerId: fx.player }, 1400)
+          banner({ kind: 'turn', playerId: fx.player })
           sound.play('turn')
           sound.buzz([40, 40, 40])
         }
         return
       case 'eliminated':
-        banner({ kind: 'eliminated', playerId: fx.target, by: fx.by }, 2600)
+        banner({ kind: 'eliminated', playerId: fx.target, by: fx.by })
         burstAtPlayer(fx.target, 'smoke')
         sound.play('out')
         return
@@ -176,5 +184,5 @@ export function useFx() {
     for (const fx of list) handle(fx, myId, cards, players)
   }
 
-  return { floaters, banners, drinkCalls, flash, shaking, run }
+  return { floaters, banners, drinkCalls, flash, shaking, run, dismiss }
 }

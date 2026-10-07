@@ -2,7 +2,7 @@ import type { CardDef, Fx, GameConfig, PublicState } from '@sdd/engine'
 import { z } from 'zod'
 
 export const MIN_PLAYERS = 2
-export const MAX_PLAYERS = 6
+export const MAX_PLAYERS = 10
 export const GAME_MODES = ['classic', 'party', 'rush', 'heavy', 'hardcore'] as const
 export const ROOM_CODE_LENGTH = 6
 

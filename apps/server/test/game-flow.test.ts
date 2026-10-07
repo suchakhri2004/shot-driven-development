@@ -24,7 +24,7 @@ async function startGame(count: number) {
 }
 
 describe('a full game over real sockets', () => {
-  for (const players of [2, 3, 4, 5, 6]) {
+  for (const players of [2, 3, 4, 6, 8, 10]) {
     it(`${players} simultaneous clients play to a winner and all agree on the result`, async () => {
       const { clients: seated } = await startGame(players)
       seated.forEach(runBot)

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { BANNER_MS } from '~/composables/useFx'
 import { theme } from '~/theme/theme'
 
 /** Big one-shot moments drawn over the table: cards being cast, blocks, incidents, players going down. */
@@ -21,7 +22,12 @@ const defOf = (id?: string) => (id ? room.cards.value[id] : undefined)
     <div class="pointer-events-none fixed inset-x-0 top-[26%] z-50 flex flex-col items-center gap-3 px-4">
       <template v-for="b in fx.banners.value" :key="b.id">
         <!-- a card was played: it flips up over the table -->
-        <div v-if="b.kind === 'play' && defOf(b.defId)" class="flex flex-col items-center gap-2" style="animation: cast-fly 1.9s ease forwards">
+        <div
+          v-if="b.kind === 'play' && defOf(b.defId)"
+          class="pointer-events-auto flex flex-col items-center gap-2"
+          :style="{ animation: `cast-fly ${BANNER_MS.play}ms ease forwards` }"
+          @click="fx.dismiss(b.id)"
+        >
           <span class="tag">{{ room.nameOf(b.playerId) }} เล่น</span>
           <GameCard :def="defOf(b.defId)!" size="md" />
         </div>
@@ -61,16 +67,17 @@ const defOf = (id?: string) => (id ? room.cards.value[id] : undefined)
 
     <!-- incident: hazard tape across the screen + the card -->
     <template v-for="b in fx.banners.value.filter((x) => x.kind === 'event')" :key="b.id">
-      <div class="pointer-events-none fixed inset-0 z-50 bg-danger" style="animation: siren 0.5s ease-in-out 5 both" />
-      <div class="pointer-events-none fixed inset-0 z-50 flex flex-col items-center justify-center gap-4">
+      <div class="pointer-events-none fixed inset-0 z-50 bg-danger" style="animation: siren 0.5s ease-in-out 9 both" />
+      <div class="fixed inset-0 z-50 flex flex-col items-center justify-center gap-4" @click="fx.dismiss(b.id)">
         <div class="hazard anim-pop"><span>INCIDENT!</span></div>
         <GameCard v-if="defOf(b.defId)" :def="defOf(b.defId)!" size="lg" class="anim-pop" />
+        <span class="text-xs text-ink/70">แตะเพื่อปิด</span>
       </div>
     </template>
 
     <!-- someone went down: a big red rubber stamp -->
     <template v-for="b in fx.banners.value.filter((x) => x.kind === 'eliminated' && !room.state.value?.finished)" :key="b.id">
-      <div class="pointer-events-none fixed inset-0 z-50 grid place-items-center bg-black/60" style="animation: fade-in 0.2s ease">
+      <div class="fixed inset-0 z-50 grid place-items-center bg-black/60" style="animation: fade-in 0.2s ease" @click="fx.dismiss(b.id)">
         <div class="flex flex-col items-center gap-3">
           <span class="stamp red big anim-stamp">{{ b.by === 'ko' ? theme.overflow : theme.crashed }}</span>
           <span class="tag"><GameIcon name="skull" tone="ink" /> {{ room.nameOf(b.playerId) }}</span>

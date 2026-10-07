@@ -30,4 +30,4 @@ test ทุกตัวอยู่ใน `packages/engine/test/` (`setup-and-tu
 | H4 | ตกรอบต้องดื่ม 2 ช็อต (`knockoutShots`, คลาสสิก = 0) | `elimination.ts` | `interlude.test.ts` "going out costs 2 real shots" |
 | H5 | โหมด (คลาสสิก ปาร์ตี้ เร่งรอบ ดื่มหนัก โหดสุด) ปรับจำนวนการ์ดดื่ม/HP/ค่าซด และขนาดกองตามจำนวนผู้เล่นจากการจำลองเล่น | `cards/modes.ts`, `cards/deck-plan.ts`, `scripts/analyze-deck.ts` | `deck.test.ts` "modes and table-sized decks" |
 
-นอกจากนี้: **SIM** สุ่มเล่นเต็มเกม 20 เกม (2–6 คน) ตรวจทุก action ว่าจำนวนการ์ดรวมคงที่, Mana ไม่ติดลบ, bank + Mana ผู้เล่นรวมคงที่, ผู้ตกรอบไม่มีการ์ด, และ projection ไม่รั่วมือคนอื่น
+นอกจากนี้: **SIM** สุ่มเล่นเต็มเกม 24 เกม (2–10 คน) ตรวจทุก action ว่าจำนวนการ์ดรวมคงที่, Mana ไม่ติดลบ, bank + Mana ผู้เล่นรวมคงที่, ผู้ตกรอบไม่มีการ์ด, และ projection ไม่รั่วมือคนอื่น

@@ -101,7 +101,7 @@ export class TestClient {
 
 /** Create a room with `count` players, everyone ready. Returns clients in seat order (host first). */
 export async function seatPlayers(url: string, count: number): Promise<{ code: string; clients: TestClient[] }> {
-  const names = ['Alice', 'Bob', 'Carol', 'Dave', 'Erin', 'Frank']
+  const names = ['Alice', 'Bob', 'Carol', 'Dave', 'Erin', 'Frank', 'Gina', 'Hank', 'Ivy', 'Jack']
   const host = await TestClient.connect(url)
   const code = await host.create(names[0])
   const clients = [host]

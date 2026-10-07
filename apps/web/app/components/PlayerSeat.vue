@@ -2,8 +2,8 @@
 import type { PublicPlayer } from '@sdd/engine'
 import { cardIcon, cardTone, theme } from '~/theme/theme'
 
-/** An opponent at the table: a token ringed by their HP, a paper name tag, and tiny badges. */
-const props = defineProps<{ player: PublicPlayer }>()
+/** An opponent at the table: a token ringed by their HP, a paper name tag, and tiny badges. `compact` is for big tables. */
+const props = defineProps<{ player: PublicPlayer; compact?: boolean }>()
 const room = useRoom()
 const fx = useFx()
 
@@ -31,25 +31,26 @@ const caption = computed(() => {
 
 <template>
   <div :key="fx.shaking.value[player.id] ?? 0" :class="{ 'anim-shake': fx.shaking.value[player.id] }">
-    <div class="plate" :class="{ active: isActive, dead: !player.alive, waiting: responding || deciding }" :data-player-id="player.id">
+    <div class="plate" :class="{ active: isActive, dead: !player.alive, waiting: responding || deciding, compact }" :data-player-id="player.id">
       <FloatersFor :player-id="player.id" />
 
       <div class="portrait">
         <span v-if="isActive" class="turn-mark" />
-        <HpRing :hp="player.hp" :max-hp="player.maxHp" :size="64" :stroke="6">
-          <PlayerAvatar :avatar="player.avatar" :size="44" :dead="!player.alive" />
+        <HpRing :hp="player.hp" :max-hp="player.maxHp" :size="compact ? 40 : 64" :stroke="compact ? 4 : 6">
+          <PlayerAvatar :avatar="player.avatar" :size="compact ? 27 : 44" :dead="!player.alive" />
         </HpRing>
         <span class="hp-badge">{{ Math.max(0, player.hp) }}</span>
+        <span v-if="compact" class="shots-badge" :title="`ซดไปแล้ว ${player.potionsDrunk} ช็อต`">{{ player.potionsDrunk }}</span>
       </div>
 
       <span class="tag name">{{ player.name }}</span>
-      <div class="caption" :class="{ alert: !player.alive || !online, busy: responding || deciding }">{{ caption }}&nbsp;</div>
+      <div v-if="!compact || caption" class="caption" :class="{ alert: !player.alive || !online, busy: responding || deciding }">{{ caption }}&nbsp;</div>
 
       <div class="stats">
         <span class="stat amber"><GameIcon name="shot" />{{ player.mana }}</span>
         <span class="stat"><GameIcon name="cards" tone="steel" />{{ player.handCount }}</span>
       </div>
-      <div class="drunk" :title="`ซดไปแล้ว ${player.potionsDrunk} ช็อต`">
+      <div v-if="!compact" class="drunk" :title="`ซดไปแล้ว ${player.potionsDrunk} ช็อต`">
         <GameIcon name="drink" tone="paper" size="0.8rem" />{{ player.nonAlcoholic ? 'ซดน้ำ' : 'ซด' }} {{ player.potionsDrunk }}
       </div>
 
@@ -74,6 +75,43 @@ const caption = computed(() => {
   align-items: center;
   text-align: center;
   transition: opacity 0.3s ease, filter 0.3s ease;
+}
+/* big tables: everything a notch smaller so two rows of five fit a phone */
+.plate.compact {
+  width: 4.25rem;
+}
+/* shots drunk, top-left of the token (Uptime is bottom-right) */
+.shots-badge {
+  position: absolute;
+  left: -6px;
+  top: -4px;
+  min-width: 1.15rem;
+  padding: 0 0.2rem;
+  border-radius: 999px;
+  font: 800 0.62rem/1.35 'Kanit', sans-serif;
+  color: #f3e7cc;
+  background: #e3242b;
+  border: 2px solid #050304;
+}
+.plate.compact .stats {
+  gap: 0.15rem;
+  margin-top: 2px;
+}
+.plate.compact .caption {
+  min-height: 0;
+}
+.plate.compact .name {
+  max-width: 4.2rem;
+  margin-top: 0.3rem;
+  font-size: 0.66rem;
+}
+.plate.compact .stat {
+  padding: 0 0.25rem;
+  font-size: 0.64rem;
+}
+.plate.compact .hp-badge {
+  min-width: 1.25rem;
+  font-size: 0.68rem;
 }
 .plate.dead {
   opacity: 0.55;

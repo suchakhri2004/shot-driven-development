@@ -85,7 +85,7 @@ const DECKS = { 'test deck': TEST_DECK, 'playable deck': DECK }
 
 for (const [deckName, deck] of Object.entries(DECKS)) {
   describe(`random full games with the ${deckName}`, () => {
-    for (const players of [2, 3, 4, 5, 6]) {
+    for (const players of [2, 3, 4, 6, 8, 10]) {
       for (const [seed, bank] of [
         ['1', null],
         ['2', null],

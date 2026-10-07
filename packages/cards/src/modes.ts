@@ -57,10 +57,10 @@ export const MODES: ModeDef[] = [
   {
     id: 'hardcore',
     name: 'โหดสุด',
-    blurb: 'Uptime 7 ซดได้แค่ +2 เหตุการณ์ดื่ม 3 เท่า ระวังเมา',
+    blurb: 'ซดได้แค่ +2 เหตุการณ์ดื่ม 3 เท่า เกมยาว ระวังเมา',
     heat: 5,
     house: { 'coffee-break': 1, hackathon: 8, 'git-blame': 10, 'last-call': 24 },
-    config: { houseCards: true, startHp: 7, maxHp: 7, potionYield: 2, responseWindowSec: 7 }
+    config: { houseCards: true, potionYield: 2 }
   }
 ]
 

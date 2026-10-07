@@ -102,7 +102,7 @@ const errors: Record<string, string> = {
   GAME_NOT_STARTED: 'เกมยังไม่เริ่ม',
   BAD_DISCARD_CHOICE: 'เลือกการ์ดที่จะทิ้งให้ครบตามจำนวน',
   ROOM_NOT_FOUND: 'ไม่พบห้องนี้ ตรวจรหัสอีกครั้ง',
-  ROOM_FULL: 'ห้องเต็มแล้ว (สูงสุด 6 คน)',
+  ROOM_FULL: 'ห้องเต็มแล้ว (สูงสุด 10 คน)',
   ROOM_IN_PROGRESS: 'ห้องนี้เริ่มเล่นไปแล้ว',
   INVALID_SESSION: 'เข้าห้องเดิมไม่ได้ (เซสชันหมดอายุ)',
   HOST_ONLY: 'เฉพาะเจ้าของห้องเท่านั้น',

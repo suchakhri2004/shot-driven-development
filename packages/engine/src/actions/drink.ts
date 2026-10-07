@@ -14,7 +14,8 @@ import type { GameState, PlayerState } from '../types'
 export function drink(s: GameState, player: PlayerState): void {
   const opening = s.phase === 'opening_shot'
   if (opening && player.openingShotDone) throw new GameError('ALREADY_DRANK')
-  if (!canDrink(s)) throw new GameError('BANK_EMPTY')
+  // the opening shot always happens (a big table can outdrink a small bank); it just gives what is left
+  if (!opening && !canDrink(s)) throw new GameError('BANK_EMPTY')
 
   const amount = giveMana(s, player, getStat(s, player, 'potionYield'))
   player.potionsDrunk += 1

@@ -212,3 +212,18 @@ describe('information hiding', () => {
     expect(iidOf(s, 'alice', 'merge-conflict')).toBeTruthy()
   })
 })
+
+describe('opening shot with a small bank', () => {
+  it('still lets everyone drink when the bank runs dry, so a big table can start', () => {
+    let s = createGame({
+      players: NAMES.slice(0, 8).map((id) => ({ id, name: id, avatar: 'a' })),
+      cards: TEST_DECK,
+      config: { manaBankSize: 20 },
+      seed: 'small-bank'
+    })
+    for (const p of s.players) s = act(s, p.id, { type: 'drink' })
+    expect(s.phase).not.toBe('opening_shot')
+    expect(s.manaBank).toBe(0)
+    expect(s.players.reduce((n, p) => n + p.mana, 0)).toBe(20)
+  })
+})
