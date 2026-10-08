@@ -94,6 +94,16 @@ const effects = {
     tone(o, 170, t + 0.66, 0.11, { type: 'sine', gain: 0.16, slideTo: 80 })
   },
 
+  /** thermal printer: the paper feeds in short buzzy steps, then a tear at the end */
+  printer: (o: Out, t: number) => {
+    for (let step = 0; step < 16; step++) {
+      const at = t + step * 0.16
+      noise(o, at, 0.07, { freq: 1800 + (step % 3) * 220, q: 6, gain: 0.05, attack: 0.004 })
+      tone(o, 95, at, 0.08, { type: 'square', gain: 0.025, lowpass: 400 })
+    }
+    noise(o, t + 2.75, 0.22, { filter: 'highpass', freq: 2500, sweepTo: 6000, gain: 0.07, attack: 0.01 })
+  },
+
   cheers: (o: Out, t: number) => {
     clink(o, t, 1, 0.2)
     clink(o, t + 0.05, 1.18, 0.16)

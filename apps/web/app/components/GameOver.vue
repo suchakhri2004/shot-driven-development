@@ -45,6 +45,9 @@ const confetti = Array.from({ length: 30 }, (_, i) => ({
   wide: i % 3 === 0
 }))
 
+const sound = useSound()
+onMounted(() => sound.play('printer'))
+
 const again = () => lock.run(() => room.playAgain())
 async function leave() {
   await room.leave()
@@ -75,28 +78,35 @@ async function leave() {
         <span v-if="iWon" class="you-win anim-stamp">คุณชนะ!</span>
       </section>
 
-      <!-- the bar tab -->
-      <section class="receipt">
-        <div class="r-title">THE DEPLOY BAR</div>
-        <div class="r-sub">BAR TAB #{{ room.lobby.value?.code }} · {{ printedAt }}</div>
-        <div class="r-rule" />
-        <div v-for="row in rows" :key="row.player.id" class="r-row">
-          <span class="r-rank">{{ row.rank }}</span>
-          <span class="r-name">{{ row.player.name }}</span>
-          <span class="r-dots" />
-          <span class="r-shots">{{ row.player.potionsDrunk }}×</span>
-          <span class="r-result" :class="{ win: row.result === 'WINNER' }">{{ row.result }}</span>
-        </div>
-        <div class="r-rule" />
-        <div class="r-row"><span class="r-name">ช็อตรวมทั้งโต๊ะ</span><span class="r-dots" /><b>{{ totalShots }}</b></div>
-        <div class="r-row"><span class="r-name">เวลา / เทิร์น</span><span class="r-dots" /><b>{{ minutes }} นาที · {{ state.turnNumber }}</b></div>
-        <div v-if="topDrinker" class="r-row"><span class="r-name">สายซดประจำโต๊ะ</span><span class="r-dots" /><b>{{ topDrinker.name }}</b></div>
-        <div class="r-rule" />
-        <div class="r-foot">ขอบคุณที่อุดหนุน · ดื่มอย่างรับผิดชอบ</div>
-        <div class="r-barcode" />
-      </section>
+      <!-- the bar tab, fed out of a thermal printer -->
+      <div class="printer" aria-hidden="true">
+        <span class="p-label">THE DEPLOY BAR · POS</span>
+        <span class="p-led" />
+        <div class="p-slot" />
+      </div>
+      <div class="paper-window">
+        <section class="receipt">
+          <div class="r-title">THE DEPLOY BAR</div>
+          <div class="r-sub">BAR TAB #{{ room.lobby.value?.code }} · {{ printedAt }}</div>
+          <div class="r-rule" />
+          <div v-for="row in rows" :key="row.player.id" class="r-row">
+            <span class="r-rank">{{ row.rank }}</span>
+            <span class="r-name">{{ row.player.name }}</span>
+            <span class="r-dots" />
+            <span class="r-shots">{{ row.player.potionsDrunk }}×</span>
+            <span class="r-result" :class="{ win: row.result === 'WINNER' }">{{ row.result }}</span>
+          </div>
+          <div class="r-rule" />
+          <div class="r-row"><span class="r-name">ช็อตรวมทั้งโต๊ะ</span><span class="r-dots" /><b>{{ totalShots }}</b></div>
+          <div class="r-row"><span class="r-name">เวลา / เทิร์น</span><span class="r-dots" /><b>{{ minutes }} นาที · {{ state.turnNumber }}</b></div>
+          <div v-if="topDrinker" class="r-row"><span class="r-name">สายซดประจำโต๊ะ</span><span class="r-dots" /><b>{{ topDrinker.name }}</b></div>
+          <div class="r-rule" />
+          <div class="r-foot">ขอบคุณที่อุดหนุน · ดื่มอย่างรับผิดชอบ</div>
+          <div class="r-barcode" />
+        </section>
+      </div>
 
-      <div class="mt-auto w-full space-y-2">
+      <div class="actions mt-auto w-full space-y-2">
         <button v-if="room.isHost.value" class="btn btn-primary h-14 w-full text-lg" :disabled="lock.busy.value" @click="again">
           <GameIcon name="rebase" tone="paper" /> เล่นอีกรอบ
         </button>
@@ -127,14 +137,65 @@ async function leave() {
   border: 3px solid #f2e8dc;
   border-radius: 8px;
 }
+/* the printer: a flat black slab with a paper slot, a label and a status light */
+.printer {
+  position: relative;
+  z-index: 2;
+  width: calc(100% + 1.4rem);
+  height: 3.4rem;
+  margin-bottom: -1.25rem;
+  border: 3px solid #050304;
+  border-radius: 14px 14px 8px 8px;
+  background: linear-gradient(#2a2124 0 55%, #1a1416 55%);
+  box-shadow: 0 6px 0 #050304;
+}
+.p-label {
+  position: absolute;
+  left: 0.9rem;
+  top: 0.45rem;
+  font: 700 0.6rem 'JetBrains Mono', monospace;
+  letter-spacing: 0.14em;
+  color: #a08f8b;
+}
+.p-led {
+  position: absolute;
+  right: 0.9rem;
+  top: 0.55rem;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  background: #e3242b;
+  animation: led 0.32s steps(2) 9 both;
+}
+.p-slot {
+  position: absolute;
+  left: 0.55rem;
+  right: 0.55rem;
+  bottom: 0.65rem;
+  height: 0.5rem;
+  border-radius: 4px;
+  background: #050304;
+}
+/* the paper comes out from under the slot: everything above the slot is hidden */
+.paper-window {
+  width: 100%;
+  overflow: hidden;
+  padding-bottom: 8px;
+  perspective: 700px;
+}
 /* a thermal-printer receipt with a torn zig-zag bottom edge */
 .receipt {
   width: 100%;
-  padding: 1rem 1rem 1.6rem;
+  padding: 1.6rem 1rem 1.6rem;
   color: #140f10;
   background: #f3e7cc;
   font: 500 0.82rem/1.5 'JetBrains Mono', monospace;
-  transform: rotate(-1deg);
+  rotate: -1deg;
+  transform-origin: 50% 0;
+  /* line-by-line feed, while the paper curls toward you a little and then lies flat */
+  animation:
+    feed 2.6s steps(16, end) 0.3s both,
+    curl 2.9s ease-out 0.3s both;
   filter: drop-shadow(0 6px 0 #050304);
   -webkit-mask: conic-gradient(from -45deg at bottom, #0000, #000 1deg 89deg, #0000 90deg) 50% / 16px 100%;
   mask: conic-gradient(from -45deg at bottom, #0000, #000 1deg 89deg, #0000 90deg) 50% / 16px 100%;
@@ -191,6 +252,41 @@ async function leave() {
   text-align: center;
   font-size: 0.7rem;
   color: #6e5c59;
+}
+/* buttons arrive once the receipt is out */
+.actions {
+  animation: fade-in 0.4s ease 2.8s both;
+}
+@keyframes feed {
+  from {
+    translate: 0 -100%;
+  }
+  to {
+    translate: 0 0;
+  }
+}
+@keyframes curl {
+  0% {
+    transform: rotateX(-24deg);
+  }
+  85% {
+    transform: rotateX(-10deg);
+  }
+  100% {
+    transform: rotateX(0deg);
+  }
+}
+@keyframes led {
+  to {
+    background: #4a1015;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .receipt,
+  .actions,
+  .p-led {
+    animation: none;
+  }
 }
 .r-barcode {
   height: 34px;

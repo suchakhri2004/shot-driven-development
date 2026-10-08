@@ -7,6 +7,16 @@ const room = useRoom()
 const fx = useFx()
 
 const defOf = (id?: string) => (id ? room.cards.value[id] : undefined)
+
+/** Where the drops go when the glasses clink (px from the point of contact). */
+const DROPS = [
+  { dx: '-22px', dy: '-18px' },
+  { dx: '-12px', dy: '-28px' },
+  { dx: '-3px', dy: '-34px' },
+  { dx: '6px', dy: '-30px' },
+  { dx: '15px', dy: '-24px' },
+  { dx: '24px', dy: '-14px' }
+]
 </script>
 
 <template>
@@ -47,6 +57,12 @@ const defOf = (id?: string) => (id ? room.cards.value[id] : undefined)
       class="pointer-events-none fixed inset-x-0 top-[33%] z-[56] flex justify-center px-4"
     >
       <div class="drink-call">
+        <!-- two glasses swing in and clink in 3D; a few drops fly off at the moment they touch -->
+        <div class="clink" aria-hidden="true">
+          <GameIcon name="shot" variant="sticker" size="2.4rem" :tone="d.sober ? 'blue' : 'red'" class="glass left" />
+          <GameIcon name="shot" variant="sticker" size="2.4rem" :tone="d.sober ? 'blue' : 'red'" class="glass right" />
+          <i v-for="drop in DROPS" :key="drop.dx" class="drop" :class="{ water: d.sober }" :style="{ '--dx': drop.dx, '--dy': drop.dy }" />
+        </div>
         <PlayerAvatar :avatar="d.avatar" :size="48" />
         <div class="flex min-w-0 flex-col items-start gap-1">
           <span class="stamp red anim-stamp">{{ d.sober ? 'ซดน้ำ!' : 'ซด!' }}</span>
@@ -120,6 +136,98 @@ const defOf = (id?: string) => (id ? room.cards.value[id] : undefined)
   border-radius: 14px;
   box-shadow: 0 5px 0 #050304;
   animation: cast-fly 1.5s ease forwards;
+  position: relative;
+}
+/* the clink sits on top of the notice; perspective makes the glasses turn in depth, not just slide */
+.clink {
+  position: absolute;
+  left: 50%;
+  top: -3rem;
+  width: 7rem;
+  height: 3.2rem;
+  margin-left: -3.5rem;
+  perspective: 260px;
+}
+.glass {
+  position: absolute;
+  top: 0.4rem;
+  transform-origin: 50% 100%;
+}
+.glass.left {
+  left: 1.25rem;
+  animation: glass-left 1.5s cubic-bezier(0.3, 1.4, 0.5, 1) both;
+}
+.glass.right {
+  right: 1.25rem;
+  animation: glass-right 1.5s cubic-bezier(0.3, 1.4, 0.5, 1) both;
+}
+/* swing in turned away, tip the rims together at ~20% (when the sound plays), bounce off, then raise for the drink */
+@keyframes glass-left {
+  0% {
+    opacity: 0;
+    transform: translateX(-30px) rotateY(70deg) rotate(-30deg);
+  }
+  20% {
+    opacity: 1;
+    transform: translateX(0) rotateY(18deg) rotate(8deg);
+  }
+  30% {
+    transform: translateX(-5px) rotateY(24deg) rotate(1deg);
+  }
+  100% {
+    transform: translateX(0) rotateY(30deg) rotate(-8deg) translateY(-4px);
+  }
+}
+@keyframes glass-right {
+  0% {
+    opacity: 0;
+    transform: translateX(30px) rotateY(-70deg) rotate(30deg);
+  }
+  20% {
+    opacity: 1;
+    transform: translateX(0) rotateY(-18deg) rotate(-8deg);
+  }
+  30% {
+    transform: translateX(5px) rotateY(-24deg) rotate(-1deg);
+  }
+  100% {
+    transform: translateX(0) rotateY(-30deg) rotate(8deg) translateY(-4px);
+  }
+}
+.drop {
+  position: absolute;
+  left: 50%;
+  top: 1.1rem;
+  width: 6px;
+  height: 6px;
+  margin-left: -3px;
+  border-radius: 50%;
+  background: #e3242b;
+  border: 1.5px solid #050304;
+  animation: drop 0.55s ease-out 0.28s both;
+}
+.drop.water {
+  background: #7fc8f8;
+}
+/* hidden until the clink (the delay keeps the 0% state), then thrown outward */
+@keyframes drop {
+  0% {
+    opacity: 0;
+    translate: 0 0;
+  }
+  1% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    translate: var(--dx) var(--dy);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .glass,
+  .drop {
+    animation: none;
+  }
 }
 .turn-tag {
   padding: 0.25rem 1rem;
