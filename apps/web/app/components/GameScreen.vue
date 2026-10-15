@@ -51,6 +51,7 @@ onBeforeUnmount(() => void wakeLock?.release())
     <GameLogSheet v-if="logOpen" @close="logOpen = false" />
     <BottomSheet v-if="rulesOpen" title="วิธีเล่น" @close="rulesOpen = false"><HowToPlay /></BottomSheet>
     <FxLayer />
+    <DrinkOrder />
     <GameOver v-if="state.finished" />
   </div>
 </template>

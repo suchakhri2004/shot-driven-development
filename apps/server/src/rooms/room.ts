@@ -1,7 +1,7 @@
 import { randomBytes, randomInt, randomUUID } from 'node:crypto'
 import { DEFAULT_CONFIG } from '@sdd/engine'
 import type { GameConfig } from '@sdd/engine'
-import { buildDeck, DECK, DEFAULT_MODE, DUEL_HP, DUEL_PLAYERS, tableConfig } from '@sdd/cards'
+import { buildDeck, DECK, DEFAULT_MODE, drinkCallPicks, DUEL_HP, DUEL_PLAYERS, tableConfig } from '@sdd/cards'
 import type { GameMode } from '@sdd/cards'
 import { MAX_PLAYERS, MIN_PLAYERS } from '@sdd/protocol'
 import type {
@@ -200,6 +200,7 @@ export class Room {
         cards: buildDeck(this.mode, members.length),
         config: tableConfig(this.mode, members.length, this.config),
         firstPlayerId: this.pickFirstPlayer(members),
+        drinkCallPicks: drinkCallPicks(),
         seed: randomUUID()
       },
       {

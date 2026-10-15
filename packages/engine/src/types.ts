@@ -31,6 +31,24 @@ export interface StatusDef {
  */
 export type InterludeMode = 'pause' | 'minigame' | 'drinkcall'
 
+/**
+ * Who a drink call is about, when the game itself can tell from the table ("lowest Uptime drinks").
+ * Calls about real life ("everyone wearing black") have no pick: the table decides and people press "I drank".
+ */
+export type DrinkCallPick =
+  | 'everyone'
+  | 'lowest-hp'
+  | 'highest-hp'
+  | 'most-mana'
+  | 'zero-mana'
+  | 'most-cards'
+  | 'most-shots'
+  | 'fewest-shots'
+  | 'active'
+  | 'neighbours'
+  | 'artifact'
+  | 'status'
+
 export type Effect =
   | { kind: 'damage'; amount: number; to: EffectTarget }
   | { kind: 'heal'; amount: number; to: EffectTarget }
@@ -199,6 +217,8 @@ export type Pending =
   /**
    * The game is stopped for a break or a mini-game. `playerId` played the card and may end it early.
    * `roll` picks the mini-game or drink call from the lists on the client; `losers` pressed "I drank" (once each).
+   * `named`: for a drink call the game can answer itself, who it named (already counted as drunk);
+   * null when the table decides.
    */
   | {
       id: number
@@ -207,6 +227,7 @@ export type Pending =
       playerId: string
       roll: number
       losers: string[]
+      named: string[] | null
       timeoutSec: number
     }
 
@@ -238,7 +259,7 @@ export type Fx =
   | { kind: 'interlude'; mode: InterludeMode; owner: string }
   | { kind: 'interlude_end' }
   /** A real shot taken as a penalty (mini-game, drink call, git blame): no Shot Stack gained, `amount` lost. */
-  | { kind: 'penalty_drink'; target: string; amount: number }
+  | { kind: 'penalty_drink'; target: string; amount: number; by?: string; card?: string }
 
 export interface EliminationRecord {
   playerId: string
@@ -272,6 +293,8 @@ export interface GameState {
   winnerId: string | null
   eliminationOrder: EliminationRecord[]
   fx: Fx[]
+  /** The pick of each drink call, in the order of the client's list (`roll % length`). Empty = no picks. */
+  drinkCallPicks: (DrinkCallPick | null)[]
 }
 
 export type Action =

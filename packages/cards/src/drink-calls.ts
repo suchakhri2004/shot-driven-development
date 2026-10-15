@@ -1,33 +1,42 @@
+import type { DrinkCallPick } from '@sdd/engine'
+
 /**
  * Drink calls for the Last Call incident (house rule H3). One is drawn at random and shown to the
- * whole table; everyone it applies to takes a real shot and presses "I drank" (no Shot Stack gained).
- * The engine stores a random `roll`; the client shows DRINK_CALLS[roll % DRINK_CALLS.length].
- * Some calls use what everyone can see on screen, the rest are about real life around the table.
+ * whole table. Calls with a `pick` are answered by the game itself: it names who drinks and counts
+ * their shot. The rest are about real life: whoever it applies to drinks and presses "I drank".
+ * Either way no Shot Stack is gained.
+ * The engine stores a random `roll`; the client shows DRINK_CALLS[roll % DRINK_CALLS.length], and the
+ * server hands the engine the picks in the same order (drinkCallPicks) so both agree.
  */
 export interface DrinkCall {
   id: string
   /** Who drinks. Short enough to read from across the table. */
   text: string
+  /** Set when the game can tell who it is from the table; then it names them for everyone. */
+  pick?: DrinkCallPick
 }
+
+/** One pick per call, in list order: what the server passes to createGame. */
+export const drinkCallPicks = (): (DrinkCallPick | null)[] => DRINK_CALLS.map((c) => c.pick ?? null)
 
 export const DRINK_CALLS: DrinkCall[] = [
   // the whole table
-  { id: 'cheers', text: 'Release สำเร็จ! ทุกคนชนแก้ว ดื่มพร้อมกัน' },
-  { id: 'outage', text: 'Production ล่มทั้งระบบ ทุกคนดื่ม' },
+  { id: 'cheers', text: 'Release สำเร็จ! ทุกคนชนแก้ว ดื่มพร้อมกัน', pick: 'everyone' },
+  { id: 'outage', text: 'Production ล่มทั้งระบบ ทุกคนดื่ม', pick: 'everyone' },
   { id: 'friday', text: 'วันนี้ใครทำงานวันศุกร์มา ดื่ม (ถ้าวันนี้ไม่ใช่ศุกร์ ทุกคนดื่ม)' },
 
   // what the screen shows
-  { id: 'lowest-uptime', text: 'คนที่ Uptime น้อยที่สุด ดื่ม (เสมอกันดื่มหมด)' },
-  { id: 'highest-uptime', text: 'คนที่ Uptime มากที่สุด ดื่ม อย่าเพิ่งมั่นใจ' },
-  { id: 'richest', text: 'คนที่ Shot Stack มากที่สุด ดื่ม' },
-  { id: 'broke', text: 'คนที่ Shot Stack เป็น 0 ดื่ม' },
-  { id: 'big-hand', text: 'คนที่ถือการ์ดมากที่สุด ดื่ม' },
-  { id: 'most-shots', text: 'คนที่ซดมาเยอะที่สุดจนถึงตอนนี้ ดื่มอีก' },
-  { id: 'fewest-shots', text: 'คนที่ซดมาน้อยที่สุด ดื่ม ตามเพื่อนให้ทัน' },
-  { id: 'active', text: 'คนที่เป็นเทิร์นอยู่ ดื่ม' },
-  { id: 'neighbours', text: 'คนที่นั่งซ้ายและขวาของคนที่เป็นเทิร์น ดื่ม' },
-  { id: 'artifact', text: 'คนที่มี Artifact วางอยู่ ดื่ม' },
-  { id: 'cursed', text: 'คนที่ติดสถานะอยู่ ดื่ม' },
+  { id: 'lowest-uptime', text: 'คนที่ Uptime น้อยที่สุด ดื่ม (เสมอกันดื่มหมด)', pick: 'lowest-hp' },
+  { id: 'highest-uptime', text: 'คนที่ Uptime มากที่สุด ดื่ม อย่าเพิ่งมั่นใจ', pick: 'highest-hp' },
+  { id: 'richest', text: 'คนที่ Shot Stack มากที่สุด ดื่ม', pick: 'most-mana' },
+  { id: 'broke', text: 'คนที่ Shot Stack เป็น 0 ดื่ม', pick: 'zero-mana' },
+  { id: 'big-hand', text: 'คนที่ถือการ์ดมากที่สุด ดื่ม', pick: 'most-cards' },
+  { id: 'most-shots', text: 'คนที่ซดมาเยอะที่สุดจนถึงตอนนี้ ดื่มอีก', pick: 'most-shots' },
+  { id: 'fewest-shots', text: 'คนที่ซดมาน้อยที่สุด ดื่ม ตามเพื่อนให้ทัน', pick: 'fewest-shots' },
+  { id: 'active', text: 'คนที่เป็นเทิร์นอยู่ ดื่ม', pick: 'active' },
+  { id: 'neighbours', text: 'คนที่นั่งซ้ายและขวาของคนที่เป็นเทิร์น ดื่ม', pick: 'neighbours' },
+  { id: 'artifact', text: 'คนที่มี Artifact วางอยู่ ดื่ม', pick: 'artifact' },
+  { id: 'cursed', text: 'คนที่ติดสถานะอยู่ ดื่ม', pick: 'status' },
 
   // dev life
   { id: 'black-shirt', text: 'คนใส่เสื้อสีดำ ทำ deploy แตก ดื่ม' },

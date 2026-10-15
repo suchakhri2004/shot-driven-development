@@ -4,7 +4,7 @@ import { GameError } from './errors'
 import { newInstance } from './lookup'
 import { hashSeed, shuffleInPlace } from './rng'
 import { DEFAULT_CONFIG } from './types'
-import type { CardDef, GameConfig, GameState, PlayerInit, PlayerState } from './types'
+import type { CardDef, DrinkCallPick, GameConfig, GameState, PlayerInit, PlayerState } from './types'
 
 export interface CreateGameOptions {
   players: PlayerInit[]
@@ -13,6 +13,8 @@ export interface CreateGameOptions {
   seed?: string | number
   /** Seat order is the order of `players` (clockwise). Defaults to the first player. */
   firstPlayerId?: string
+  /** For each drink call in the client's list, who the game names (null: the table decides). */
+  drinkCallPicks?: (DrinkCallPick | null)[]
 }
 
 function createPlayer(init: PlayerInit, seat: number, config: GameConfig): PlayerState {
@@ -76,7 +78,8 @@ export function createGame(options: CreateGameOptions): GameState {
     finished: false,
     winnerId: null,
     eliminationOrder: [],
-    fx: []
+    fx: [],
+    drinkCallPicks: options.drinkCallPicks ?? []
   }
 
   for (const def of cards) {

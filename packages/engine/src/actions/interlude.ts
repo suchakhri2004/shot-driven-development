@@ -1,7 +1,8 @@
 import { GameError } from '../errors'
 import { addLog, emit } from '../log'
+import { alivePlayersFrom } from '../lookup'
 import { nextRandom } from '../rng'
-import type { GameState, InterludeMode, PlayerState } from '../types'
+import type { DrinkCallPick, GameState, InterludeMode, PlayerState } from '../types'
 import { penaltyDrink } from './drink'
 
 /**
@@ -11,17 +12,67 @@ import { penaltyDrink } from './drink'
  * The owner is whoever played the card, or the active player for a drink call (an Incident).
  */
 export function startInterlude(s: GameState, ownerId: string, mode: InterludeMode): void {
-  s.pending = {
+  const roll = Math.floor(nextRandom(s) * 2 ** 31)
+  const pick = mode === 'drinkcall' && s.drinkCallPicks.length ? s.drinkCallPicks[roll % s.drinkCallPicks.length] : null
+  const named = pick ? pickPlayers(s, pick) : null
+  const pending = {
     id: s.nextPendingId++,
-    kind: 'interlude',
+    kind: 'interlude' as const,
     mode,
     playerId: ownerId,
-    roll: Math.floor(nextRandom(s) * 2 ** 31),
-    losers: [],
+    roll,
+    losers: [] as string[],
+    named: named?.map((p) => p.id) ?? null,
     timeoutSec: mode === 'drinkcall' ? s.config.drinkCallSec : s.config.interludeSec
   }
+  s.pending = pending
   addLog(s, `${mode}_start`, { actor: ownerId })
   emit(s, { kind: 'interlude', mode, owner: ownerId })
+  // the game already knows who this call is about: count their shot now (the screen lists them).
+  // A shot can knock its drinker out (potion-limit KO) and close the call, so keep our own reference.
+  for (const player of named ?? []) {
+    pending.losers.push(player.id)
+    penaltyDrink(s, player, 0, { notice: false })
+  }
+}
+
+/** Everyone a drink call names, from what the whole table can see. Ties all drink. */
+function pickPlayers(s: GameState, pick: DrinkCallPick): PlayerState[] {
+  const alive = s.players.filter((p) => p.alive)
+  const most = (value: (p: PlayerState) => number) => {
+    const top = Math.max(...alive.map(value))
+    return alive.filter((p) => value(p) === top)
+  }
+  const least = (value: (p: PlayerState) => number) => most((p) => -value(p))
+  switch (pick) {
+    case 'everyone':
+      return alive
+    case 'lowest-hp':
+      return least((p) => p.hp)
+    case 'highest-hp':
+      return most((p) => p.hp)
+    case 'most-mana':
+      return most((p) => p.mana)
+    case 'zero-mana':
+      return alive.filter((p) => p.mana === 0)
+    case 'most-cards':
+      return most((p) => p.hand.length)
+    case 'most-shots':
+      return most((p) => p.potionsDrunk)
+    case 'fewest-shots':
+      return least((p) => p.potionsDrunk)
+    case 'active':
+      return alive.filter((p) => p.id === s.activeId)
+    case 'neighbours': {
+      // seat order starting at the active player: the next one is on the left, the last one on the right
+      const order = alivePlayersFrom(s, s.activeId).filter((p) => p.id !== s.activeId)
+      return [...new Set([order[0], order[order.length - 1]])].filter((p) => !!p)
+    }
+    case 'artifact':
+      return alive.filter((p) => p.artifacts.length > 0)
+    case 'status':
+      return alive.filter((p) => p.statuses.length > 0)
+  }
 }
 
 /** Also used when the timer runs out. */
@@ -42,6 +93,8 @@ export function endInterlude(s: GameState, player: PlayerState): void {
 export function takeDrink(s: GameState, player: PlayerState): void {
   const pending = s.pending
   if (pending?.kind !== 'interlude' || pending.mode === 'pause') throw new GameError('NO_DRINK_CALL')
+  // the game already named who drinks: nobody else self-reports on this one
+  if (pending.named) throw new GameError('DRINK_CALL_DECIDED')
   if (pending.losers.includes(player.id)) throw new GameError('ALREADY_TOOK_DRINK')
   pending.losers.push(player.id)
   penaltyDrink(s, player, pending.mode === 'minigame' ? s.config.miniGamePenalty : 0)

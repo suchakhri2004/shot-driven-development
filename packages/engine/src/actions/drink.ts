@@ -33,13 +33,20 @@ export function drink(s: GameState, player: PlayerState): void {
 /**
  * House rules: a shot someone is made to take (lost a mini-game, a drink call, git blame).
  * It counts as a drink but gives no Shot Stack; instead the player loses up to `manaLoss`, back to the bank.
+ * `notice` false skips the on-screen "X drank" cue (a drink call already lists everyone it named).
+ * `by`/`card`: who made them drink and with what, so their own screen can tell them (git blame).
  */
-export function penaltyDrink(s: GameState, player: PlayerState, manaLoss: number): void {
+export function penaltyDrink(
+  s: GameState,
+  player: PlayerState,
+  manaLoss: number,
+  { notice = true, by, card }: { notice?: boolean; by?: string; card?: string } = {}
+): void {
   const amount = Math.min(player.mana, manaLoss)
   spendMana(s, player, amount)
   player.potionsDrunk += 1
   addLog(s, 'penalty_drink', { target: player.id, amount })
-  emit(s, { kind: 'penalty_drink', target: player.id, amount })
+  if (notice) emit(s, { kind: 'penalty_drink', target: player.id, amount, by, card })
   enforcePotionLimit(s, player)
 }
 

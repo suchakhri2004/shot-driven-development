@@ -1,19 +1,24 @@
 import { DECK, TEST_DECK } from '@sdd/cards'
 import { describe, expect, it } from 'vitest'
 import { createGame, dispatch, SYSTEM_PLAYER } from '../src'
-import type { GameConfig, GameState } from '../src'
-import { act, giveHand, NAMES, play, player, reject, rigNextDraw, setMana } from './helpers'
+import type { DrinkCallPick, GameConfig, GameState } from '../src'
+import { act, giveHand, NAMES, play, player, reject, rigNextDraw, setHp, setMana } from './helpers'
 
 const HOUSE = DECK.filter((c) => c.house)
 
 /** Like newGame(), plus the coffee break and mini-game definitions (0 copies: tests hand them out). */
-function houseGame(config: Partial<GameConfig> = {}, manaBankSize: number | null = null): GameState {
+function houseGame(
+  config: Partial<GameConfig> = {},
+  manaBankSize: number | null = null,
+  drinkCallPicks: (DrinkCallPick | null)[] = []
+): GameState {
   const base = TEST_DECK.map((c) => (c.type === 'defensive' || c.type === 'event' ? { ...c, copies: 0 } : c))
   return createGame({
     players: NAMES.slice(0, 3).map((id) => ({ id, name: id, avatar: 'a' })),
     cards: [...base, ...HOUSE.map((c) => ({ ...c, copies: 0 }))],
     config: { openingShot: false, manaBankSize, ...config },
-    seed: 'house'
+    seed: 'house',
+    drinkCallPicks
   })
 }
 
@@ -117,7 +122,10 @@ describe('drinking house rules', () => {
     let s = setMana(giveHand(houseGame(), 'alice', ['git-blame']), 'alice', 1)
     s = setMana(s, 'bob', 5)
     const result = dispatch(s, 'alice', { type: 'play_card', cardId: s.players[0].hand[0].iid, targets: ['bob'] })
-    expect(result.ok && result.fx.filter((f) => f.kind === 'penalty_drink')).toEqual([{ kind: 'penalty_drink', target: 'bob', amount: 3 }])
+    // bob's own screen learns who made him drink and with what
+    expect(result.ok && result.fx.filter((f) => f.kind === 'penalty_drink')).toEqual([
+      { kind: 'penalty_drink', target: 'bob', amount: 3, by: 'alice', card: 'git-blame' }
+    ])
     s = play(s, 'alice', 'git-blame', { targets: ['bob'] })
     expect(player(s, 'bob').mana).toBe(2)
     expect(player(s, 'bob').potionsDrunk).toBe(1)
@@ -128,5 +136,33 @@ describe('drinking house rules', () => {
     expect(player(out, 'bob').potionsDrunk).toBe(2)
     expect(out.log.at(-1)).toMatchObject({ kind: 'eliminated', target: 'bob', amount: 2 })
     expect(player(act(houseGame({ knockoutShots: 0 }), 'bob', { type: 'declare_ko' }), 'bob').potionsDrunk).toBe(0)
+  })
+})
+
+describe('drink calls the game can answer', () => {
+  /** A Last Call whose only possible call is `pick`, drawn by bob at the start of his turn. */
+  const lastCall = (pick: DrinkCallPick, change: (s: GameState) => GameState = (s) => s) => {
+    let s = change(rigNextDraw(houseGame({}, null, [pick]), 'bob', 'last-call'))
+    s = act(s, 'alice', { type: 'finish_turn' })
+    return s
+  }
+
+  it('names the lowest Uptime (ties too) and counts their shot', () => {
+    const s = lastCall('lowest-hp', (g) => setHp(setHp(g, 'alice', 4), 'carol', 4))
+    expect(s.pending).toMatchObject({ kind: 'interlude', mode: 'drinkcall', named: ['alice', 'carol'], losers: ['alice', 'carol'] })
+    expect(player(s, 'alice').potionsDrunk).toBe(1)
+    expect(player(s, 'bob').potionsDrunk).toBe(0)
+    expect(reject(s, 'bob', { type: 'take_drink' })).toBe('DRINK_CALL_DECIDED')
+  })
+
+  it('names the neighbours of the active player, and can name nobody', () => {
+    expect(lastCall('neighbours').pending).toMatchObject({ named: ['carol', 'alice'] })
+    expect(lastCall('artifact').pending).toMatchObject({ named: [], losers: [] })
+  })
+
+  it('leaves real-life calls to the table', () => {
+    const s = lastCall('everyone', (g) => ({ ...g, drinkCallPicks: [null] }))
+    expect(s.pending).toMatchObject({ named: null, losers: [] })
+    expect(act(s, 'carol', { type: 'take_drink' }).pending).toMatchObject({ losers: ['carol'] })
   })
 })

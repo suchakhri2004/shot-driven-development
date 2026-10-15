@@ -40,7 +40,7 @@ export function runStep(s: GameState, step: Step): void {
     case 'interlude':
       return startInterlude(s, ctx.sourceId ?? s.activeId, effect.mode)
     case 'penaltyDrink':
-      return penaltyDrink(s, target!, effect.manaLoss)
+      return penaltyDrink(s, target!, effect.manaLoss, { by: ctx.sourceId ?? undefined, card: ctx.defId })
   }
 }
 

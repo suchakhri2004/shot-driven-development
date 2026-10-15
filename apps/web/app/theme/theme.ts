@@ -86,6 +86,7 @@ const errors: Record<string, string> = {
   NOT_INTERLUDE_OWNER: 'คนเล่นการ์ดหรือเจ้าของห้องเท่านั้นที่กดจบได้',
   NO_DRINK_CALL: 'ตอนนี้ไม่มีคำสั่งดื่ม',
   ALREADY_TOOK_DRINK: 'คุณกดว่าดื่มไปแล้ว',
+  DRINK_CALL_DECIDED: 'เกมเลือกคนดื่มให้แล้ว',
   INSUFFICIENT_MANA: 'Shot Stack ไม่พอ ลอง `sudo shot` ก่อน',
   CARD_NOT_IN_HAND: 'ไม่มีการ์ดใบนี้ในมือแล้ว',
   BAD_TARGET: 'เลือกเป้าหมายไม่ถูกต้อง',

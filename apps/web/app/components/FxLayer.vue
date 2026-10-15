@@ -83,7 +83,7 @@ const DROPS = [
 
     <!-- incident: hazard tape across the screen + the card -->
     <template v-for="b in fx.banners.value.filter((x) => x.kind === 'event')" :key="b.id">
-      <div class="pointer-events-none fixed inset-0 z-50 bg-danger" style="animation: siren 0.5s ease-in-out 9 both" />
+      <div class="pointer-events-none fixed inset-0 z-50 bg-danger" style="animation: siren 0.5s ease-in-out 3 both" />
       <div class="fixed inset-0 z-50 flex flex-col items-center justify-center gap-4" @click="fx.dismiss(b.id)">
         <div class="hazard anim-pop"><span>INCIDENT!</span></div>
         <GameCard v-if="defOf(b.defId)" :def="defOf(b.defId)!" size="lg" class="anim-pop" />

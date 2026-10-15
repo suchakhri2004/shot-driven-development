@@ -43,6 +43,7 @@ const call = computed(() => {
 const canEnd = computed(() => interlude.value?.playerId === state.value.me || room.isHost.value)
 const iLost = computed(() => !!interlude.value?.losers.includes(state.value.me))
 const amAlive = computed(() => !!room.me.value?.alive)
+const avatarOf = (id: string) => state.value.players.find((p) => p.id === id)?.avatar ?? ''
 
 const clock = computed(() => {
   const sec = Math.ceil(room.msLeft(now.value) / 1000)
@@ -81,14 +82,26 @@ const lose = () => lock.run(() => room.send({ type: 'take_drink' }))
         <h2 class="font-display text-2xl font-bold">{{ call.title }}</h2>
         <p class="text-lg leading-relaxed">{{ call.text }}</p>
       </div>
-      <p class="text-sm">{{ call.hint }}</p>
-
-      <div v-if="interlude.losers.length" class="flex flex-wrap justify-center gap-2">
-        <span v-for="id in interlude.losers" :key="id" class="tag">{{ room.nameOf(id) }} {{ call.done }}</span>
-      </div>
+      <!-- the game answered this call itself: it says who, and their shots are already counted -->
+      <template v-if="interlude.named">
+        <p v-if="iLost" class="you-drink">คุณโดน! ดื่ม 1 ช็อต</p>
+        <div v-if="interlude.named.length" class="flex flex-wrap justify-center gap-2">
+          <span v-for="id in interlude.named" :key="id" class="named" :class="{ me: id === state.me }">
+            <PlayerAvatar :avatar="avatarOf(id)" :size="30" />{{ room.nameOf(id) }}
+          </span>
+        </div>
+        <p v-else class="font-display text-xl font-bold text-neon">ไม่มีใครเข้าข่าย รอดไป!</p>
+        <p class="text-xs text-dim">เกมเช็กจากโต๊ะให้แล้ว คนที่มีชื่อดื่ม 1 ช็อตจริง</p>
+      </template>
+      <template v-else>
+        <p class="text-sm">{{ call.hint }}</p>
+        <div v-if="interlude.losers.length" class="flex flex-wrap justify-center gap-2">
+          <span v-for="id in interlude.losers" :key="id" class="tag">{{ room.nameOf(id) }} {{ call.done }}</span>
+        </div>
+      </template>
 
       <div class="flex w-full max-w-xs flex-col gap-2">
-        <button v-if="amAlive" class="btn btn-amber h-14 text-lg" :disabled="iLost || lock.busy.value" @click="lose">
+        <button v-if="amAlive && !interlude.named" class="btn btn-amber h-14 text-lg" :disabled="iLost || lock.busy.value" @click="lose">
           <GameIcon name="drink" tone="paper" /> {{ iLost ? 'ดื่มแล้ว' : call.button }}
         </button>
         <button v-if="canEnd" class="btn h-12" :disabled="lock.busy.value" @click="end">{{ call.end }}</button>
@@ -113,6 +126,28 @@ const lose = () => lock.run(() => room.send({ type: 'take_drink' }))
   border-radius: 10px;
   box-shadow: inset 0 0 0 3px #0e0a0b, inset 0 0 0 5px currentColor;
   transform: rotate(-4deg);
+  animation: stamp 0.45s cubic-bezier(0.2, 0.8, 0.2, 1) 1.6s both;
+}
+/* who the game named: paper tags with the player's token; yours is red so you cannot miss it */
+.named {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.2rem 0.7rem 0.2rem 0.25rem;
+  font: 700 0.95rem 'Kanit', sans-serif;
+  color: #140f10;
+  background: #f3e7cc;
+  border: 2.5px solid #050304;
+  border-radius: 999px;
+  box-shadow: 2px 2px 0 #050304;
+}
+.named.me {
+  color: #f3e7cc;
+  background: #e3242b;
+}
+.you-drink {
+  font: 800 1.6rem 'Kanit', sans-serif;
+  color: #ff4d52;
   animation: stamp 0.45s cubic-bezier(0.2, 0.8, 0.2, 1) 1.6s both;
 }
 .rules-card {

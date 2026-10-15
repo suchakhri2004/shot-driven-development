@@ -32,14 +32,27 @@ export interface DrinkCall {
   lost?: number
 }
 
+/**
+ * Someone made *me* drink (git blame): my own screen holds a big order until I press "I drank",
+ * so I cannot miss it among the table-wide notices.
+ */
+export interface DrinkOrder {
+  id: number
+  byName: string
+  byAvatar: string
+  card: string
+  lost: number
+}
+
 const DRINK_CALL_MS = 1500
 
 /** How long each big banner stays (ms). Long enough to read across a table; a tap closes it sooner. */
-export const BANNER_MS = { play: 3000, counter: 2500, event: 5000, eliminated: 3500, turn: 1400 }
+export const BANNER_MS = { play: 3000, counter: 2500, event: 3500, eliminated: 3500, turn: 1400 }
 
 const floaters = ref<Floater[]>([])
 const banners = ref<Banner[]>([])
 const drinkCalls = ref<DrinkCall[]>([])
+const orders = ref<DrinkOrder[]>([])
 let drinkCallsFreeAt = 0
 const flash = ref<{ id: number; color: string } | null>(null)
 const shaking = ref<Record<string, number>>({})
@@ -140,7 +153,8 @@ export function useFx() {
         sound.play('counter')
         return
       case 'event':
-        banner({ kind: 'event', defId: fx.defId })
+        // an Incident that opens its own screen (Last Call) announces itself; a banner would only cover it
+        if (!cards[fx.defId]?.effects.some((e) => e.kind === 'interlude')) banner({ kind: 'event', defId: fx.defId })
         sound.play('event')
         sound.buzz([80, 60, 80])
         return
@@ -170,6 +184,11 @@ export function useFx() {
         if (fx.amount > 0) floater('mana', fx.target, `-${fx.amount}`)
         const loser = players.find((p) => p.id === fx.target)
         if (loser) drinkCall(loser, myId, fx.amount)
+        const by = players.find((p) => p.id === fx.by)
+        if (fx.target === myId && by && by.id !== myId) {
+          orders.value = [...orders.value, { id: nextId++, byName: by.name, byAvatar: by.avatar, card: (fx.card && cards[fx.card]?.name) || '', lost: fx.amount }]
+          sound.buzz([250, 120, 250, 120, 400])
+        }
         return
       }
       case 'winner':
@@ -184,5 +203,10 @@ export function useFx() {
     for (const fx of list) handle(fx, myId, cards, players)
   }
 
-  return { floaters, banners, drinkCalls, flash, shaking, run, dismiss }
+  /** I pressed "I drank" on the order at the front of the queue. */
+  function obeyOrder() {
+    orders.value = orders.value.slice(1)
+  }
+
+  return { floaters, banners, drinkCalls, orders, flash, shaking, run, dismiss, obeyOrder }
 }
